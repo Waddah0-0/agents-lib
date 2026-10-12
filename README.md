@@ -2,7 +2,7 @@
 
 A modular open-source library that hosts focused, installable AI agents. Every agent shares the same interface, standard result format, and common infrastructure (LLM access, loaders, reporting).
 
-## 🚀 Vision
+## Vision
 
 - **Plug-and-play agents:** Adding a new agent takes hours, not days.
 - **Multiple interfaces:** Run any agent via CLI, Python import, HTTP API, or generic/custom UI.
@@ -11,7 +11,7 @@ A modular open-source library that hosts focused, installable AI agents. Every a
 
 ---
 
-## 📂 Repository Structure
+## Repository Structure
 
 This repository is structured as a `uv` workspace monorepo:
 
@@ -29,7 +29,7 @@ agents-lib/
 
 ---
 
-## 🛠️ Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -76,6 +76,6 @@ Run all checks locally before committing:
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the [MIT License](LICENSE).
