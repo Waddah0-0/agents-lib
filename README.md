@@ -56,7 +56,7 @@ agents-lib/
 
 ---
 
-## 🧪 Development & Quality Checks
+## Development & Quality Checks
 
 Run all checks locally before committing:
 
