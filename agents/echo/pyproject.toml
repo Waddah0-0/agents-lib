@@ -1,0 +1,22 @@
+[project]
+name = "agents-lib-echo"
+version = "0.1.0"
+description = "Reference echo agent for agents-lib (smoke tests and examples)"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "agents-lib-core",
+]
+
+[project.entry-points."agents_lib.agents"]
+echo = "echo_agent.agent:EchoAgent"
+
+[tool.uv.sources]
+agents-lib-core = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/echo_agent"]

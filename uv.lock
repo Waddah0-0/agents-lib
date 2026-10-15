@@ -12,6 +12,7 @@ members = [
     "agents-lib-api",
     "agents-lib-cli",
     "agents-lib-core",
+    "agents-lib-echo",
     "agents-lib-workspace",
 ]
 
@@ -69,15 +70,28 @@ name = "agents-lib-core"
 version = "0.1.0"
 source = { editable = "packages/core" }
 dependencies = [
+    { name = "httpx" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "httpx", specifier = ">=0.27.0" },
     { name = "pydantic", specifier = ">=2.7.0" },
     { name = "pydantic-settings", specifier = ">=2.2.0" },
 ]
+
+[[package]]
+name = "agents-lib-echo"
+version = "0.1.0"
+source = { editable = "agents/echo" }
+dependencies = [
+    { name = "agents-lib-core" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "agents-lib-core", editable = "packages/core" }]
 
 [[package]]
 name = "agents-lib-workspace"

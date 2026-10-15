@@ -323,14 +323,14 @@ Rule: **don't start Phase 6 before Phase 4 works.** A beautiful UI on a bad dete
 - [x] Pre-commit hooks (ruff, trailing whitespace)
 
 ### Phase 1: Core
-- [ ] `models.py`: `AgentInput`, `AgentResult`, `Finding`, `Evidence`, `RunMetadata`
-- [ ] `agent.py`: `BaseAgent`, `RunContext`
-- [ ] `registry.py`: entry-point discovery + tests with a fake agent package
-- [ ] `loaders/local.py` + `filters.py` (with tests for every ignore rule)
-- [ ] `loaders/github.py` (clone with limits; test against a tiny public repo or a local bare repo fixture)
-- [ ] `llm/base.py`, `llm/mock.py`, `llm/anthropic.py`, `llm/openai.py` (retry, timeout, cost tracking, budget cap)
-- [ ] `reporting/json_report.py`, `reporting/markdown_report.py`
-- [ ] `examples/custom_agent.py` + `docs/writing-an-agent.md`
+- [x] `models.py`: `AgentInput`, `AgentResult`, `Finding`, `Evidence`, `RunMetadata`
+- [x] `agent.py`: `BaseAgent`, `RunContext`
+- [x] `registry.py`: entry-point discovery + tests with a fake agent package
+- [x] `loaders/local.py` + `filters.py` (with tests for every ignore rule)
+- [x] `loaders/github.py` (clone with limits; test against a tiny public repo or a local bare repo fixture)
+- [x] `llm/base.py`, `llm/mock.py`, `llm/anthropic.py`, `llm/openai.py` (retry, timeout, cost tracking, budget cap)
+- [x] `reporting/json_report.py`, `reporting/markdown_report.py`
+- [x] `examples/custom_agent.py` + `docs/writing-an-agent.md`
 
 ### Phase 2: CLI
 - [ ] `agents list`, `agents run <id> <target>`, `--format`, `--out`, `--model`, `--max-cost`

@@ -26,6 +26,7 @@ agents-lib-core = { workspace = true }
 agents-lib-cli = { workspace = true }
 agents-lib-api = { workspace = true }
 agents-lib-ai-code-detector = { workspace = true }
+agents-lib-echo = { workspace = true }
 
 [tool.ruff]
 line-length = 100
@@ -50,6 +51,7 @@ mypy_path = [
     "packages/cli/src",
     "packages/api/src",
     "agents/ai_code_detector/src",
+    "agents/echo/src",
 ]
 files = [
     "packages",

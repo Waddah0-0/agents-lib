@@ -1,3 +1,68 @@
-"""Core foundation library for agents-lib."""
+"""Core foundation library for agents-lib.
+
+Public API::
+
+    from agents_core import BaseAgent, RunContext, AgentResult, Finding, Evidence
+    from agents_core import run_agent, list_agents, get_agent
+"""
+
+from agents_core.agent import BaseAgent, CancellationToken, ProgressCallback, RunContext
+from agents_core.errors import (
+    AgentLoadError,
+    AgentNotFoundError,
+    AgentsLibError,
+    BudgetExceededError,
+    InputValidationError,
+    InvalidTargetError,
+    LimitExceededError,
+    LLMError,
+    LoaderError,
+    RunCancelledError,
+    TransientLLMError,
+)
+from agents_core.models import (
+    AgentInfo,
+    AgentInput,
+    AgentResult,
+    Evidence,
+    Finding,
+    ProgressEvent,
+    RunMetadata,
+    TokenUsage,
+)
+from agents_core.registry import AgentRegistry, default_registry, get_agent, list_agents
+from agents_core.runner import run_agent
 
 __version__ = "0.1.0"
+
+__all__ = [
+    "AgentInfo",
+    "AgentInput",
+    "AgentLoadError",
+    "AgentNotFoundError",
+    "AgentRegistry",
+    "AgentResult",
+    "AgentsLibError",
+    "BaseAgent",
+    "BudgetExceededError",
+    "CancellationToken",
+    "Evidence",
+    "Finding",
+    "InputValidationError",
+    "InvalidTargetError",
+    "LLMError",
+    "LimitExceededError",
+    "LoaderError",
+    "ProgressCallback",
+    "ProgressEvent",
+    "RunCancelledError",
+    "RunContext",
+    "RunMetadata",
+    "TokenUsage",
+    "TransientLLMError",
+    "__version__",
+    "default_registry",
+    "get_agent",
+    "list_agents",
+    "run_agent",
+]
