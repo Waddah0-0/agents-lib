@@ -45,6 +45,7 @@ def create_llm(
             model,
             base_url=settings.local_llm_base_url,
             api_key=local_key.get_secret_value() if local_key else None,
+            reasoning_effort=settings.local_llm_reasoning_effort,
             max_cost_usd=budget,
         )
     if provider == "anthropic":

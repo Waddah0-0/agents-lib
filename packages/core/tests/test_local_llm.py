@@ -213,3 +213,20 @@ async def test_ratio_heuristic_for_servers_without_window() -> None:
 async def test_short_prompts_never_warn_without_window() -> None:
     llm, _ = _client(lambda _: httpx.Response(200, json=_completion("ok", prompt_tokens=1)))
     assert (await llm.complete("x" * 1000)).warnings == []
+
+
+async def test_thinking_is_off_by_default_and_configurable() -> None:
+    llm, seen = _client(lambda _: httpx.Response(200, json=_completion("ok")))
+    await llm.complete("hi")
+    assert seen[0]["reasoning_effort"] == "none"
+    llm, seen = _client(lambda _: httpx.Response(200, json=_completion("ok")), reasoning_effort="")
+    await llm.complete("hi")
+    assert "reasoning_effort" not in seen[0]
+
+
+async def test_answer_lost_to_hidden_reasoning_is_a_clear_error() -> None:
+    reply = _completion("")
+    reply["choices"][0]["message"]["reasoning"] = "Let me think... " * 100
+    llm, _ = _client(lambda _: httpx.Response(200, json=reply))
+    with pytest.raises(LLMError, match="hidden reasoning"):
+        await llm.complete("hi")

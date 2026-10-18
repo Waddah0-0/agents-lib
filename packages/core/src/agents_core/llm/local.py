@@ -56,6 +56,7 @@ class LocalLLM(LLMClient):
         base_url: str | None = None,
         api_key: str | None = None,
         structured_output: bool = True,
+        reasoning_effort: str | None = "none",
         http_client: httpx.AsyncClient | None = None,
         **options: Unpack[LLMClientOptions],
     ) -> None:
@@ -69,6 +70,9 @@ class LocalLLM(LLMClient):
         self._url = f"{self.base_url}/v1/chat/completions"
         self._api_key = api_key  # only for servers started with an API key (e.g. vLLM)
         self.structured_output = structured_output
+        # Thinking models (e.g. qwen3.5) otherwise spend the whole output budget on hidden
+        # reasoning. "none" turns it off; other models ignore the field (verified 2026-10-19).
+        self.reasoning_effort = reasoning_effort or None
         self._http_client = http_client
         self._context_window: int | None = None
         self._context_probes_left = MAX_CONTEXT_PROBES
@@ -144,6 +148,8 @@ class LocalLLM(LLMClient):
         }
         if temperature is not None:
             payload["temperature"] = temperature
+        if self.reasoning_effort is not None:
+            payload["reasoning_effort"] = self.reasoning_effort
         if json_schema is not None and self.structured_output:
             payload["response_format"] = {
                 "type": "json_schema",
@@ -177,6 +183,12 @@ class LocalLLM(LLMClient):
                 ) from exc
             raise
         response = parse_chat_completion(data, self.model, "local LLM")
+        message = (data.get("choices") or [{}])[0].get("message") or {}
+        if not response.text and (message.get("reasoning") or message.get("reasoning_content")):
+            raise LLMError(
+                f"{self.model} spent its whole output on hidden reasoning and gave no answer. "
+                "Set LOCAL_LLM_REASONING_EFFORT=none (the default) or raise max_tokens."
+            )
         prompt_chars = sum(len(m.content) for m in messages) + len(system or "")
         warning = await self._truncation_warning(prompt_chars, response.input_tokens)
         if warning:

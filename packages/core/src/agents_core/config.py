@@ -21,6 +21,7 @@ class Settings(BaseSettings):
 
     local_llm_base_url: str = "http://localhost:11434"
     local_llm_api_key: SecretStr | None = None
+    local_llm_reasoning_effort: str = "none"  # empty: don't send the field
 
     default_llm_provider: str = "local"
     default_llm_model: str | None = None
