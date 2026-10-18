@@ -127,8 +127,7 @@ Click an agent's name for what it does, how to use it, and its limits.
 
 ## Status
 
-The project is built in phases. The full plan, including the design reasoning, is in
-[PLAN.md](PLAN.md).
+The project is built in phases, each one usable before the next begins.
 
 | Phase | Scope | State |
 |---|---|---|
