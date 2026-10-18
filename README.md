@@ -133,9 +133,10 @@ The project is built in phases, each one usable before the next begins.
 |---|---|---|
 | 0 | Repository skeleton, tooling, CI | Done |
 | 1 | Core: contract, models, registry, loaders, LLM clients, reporting | Done |
-| 2 | Command-line tool (`agents list`, `agents run`) | Next |
-| 3 | AI Code Detector using heuristic signals only | Planned |
-| 4 | LLM judge, evaluation dataset, calibrated scoring | Planned |
+| 1.5 | Core fixes: per-run LLM budgets, git history scoped to the target, safer clones | Next |
+| 2 | Command-line tool (`agents list`, `agents info`, `agents run`) | Planned |
+| 3 | AI Code Detector with heuristic signals, plus the evaluation harness that measures it | Planned |
+| 4 | LLM judge, larger evaluation dataset, calibrated scoring | Planned |
 | 5 | HTTP API with background runs and live progress | Planned |
 | 6–7 | Web UI: a generic one for every agent, plus a custom view for the detector | Planned |
 | 8 | Hardening and the first PyPI release | Planned |
