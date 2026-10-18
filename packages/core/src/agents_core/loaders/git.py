@@ -143,7 +143,7 @@ async def read_commits(
 
 
 def read_changed_files_sync(
-    root: Path, pathspecs: list[str] | None = None
+    root: Path, pathspecs: list[str] | None = None, max_count: int | None = None
 ) -> list[tuple[str, list[str]]]:
     """``(sha, repo-relative paths)`` per commit, newest first, without reading any blob.
 
@@ -159,6 +159,8 @@ def read_changed_files_sync(
         "--no-renames",
         f"--format={RECORD_SEP}%H",
     ]
+    if max_count is not None:
+        args.append(f"--max-count={max_count}")
     output = run_git(args + _pathspec_args(pathspecs), cwd=root, timeout_s=120.0)
     changes: list[tuple[str, list[str]]] = []
     for record in output.split(RECORD_SEP):
@@ -169,6 +171,6 @@ def read_changed_files_sync(
 
 
 async def read_changed_files(
-    root: Path, pathspecs: list[str] | None = None
+    root: Path, pathspecs: list[str] | None = None, max_count: int | None = None
 ) -> list[tuple[str, list[str]]]:
-    return await asyncio.to_thread(read_changed_files_sync, root, pathspecs)
+    return await asyncio.to_thread(read_changed_files_sync, root, pathspecs, max_count)

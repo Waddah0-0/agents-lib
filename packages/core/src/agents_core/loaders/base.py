@@ -77,22 +77,22 @@ class GitInfo(BaseModel):
             return []
         return await read_commits(self.root, max_count=max_count, pathspecs=self.pathspecs)
 
-    async def changed_files(self) -> dict[str, list[str]]:
+    async def changed_files(self, max_count: int | None = None) -> dict[str, list[str]]:
         """Map of commit SHA to the workspace-relative files it changed (merges excluded)."""
         from agents_core.loaders.git import read_changed_files
 
         if self.head is None:
             return {}
-        raw = await read_changed_files(self.root, pathspecs=self.pathspecs)
+        raw = await read_changed_files(self.root, pathspecs=self.pathspecs, max_count=max_count)
         result: dict[str, list[str]] = {}
         for sha, paths in raw:
             result[sha] = [rel for p in paths if (rel := self.to_workspace_path(p)) is not None]
         return result
 
-    async def file_history(self) -> dict[str, list[str]]:
+    async def file_history(self, max_count: int | None = None) -> dict[str, list[str]]:
         """Map of workspace-relative path to SHAs of commits that changed it, newest first."""
         history: dict[str, list[str]] = {}
-        for sha, paths in (await self.changed_files()).items():
+        for sha, paths in (await self.changed_files(max_count)).items():
             for path in paths:
                 history.setdefault(path, []).append(sha)
         return history
