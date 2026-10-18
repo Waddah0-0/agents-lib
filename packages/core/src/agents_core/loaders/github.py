@@ -14,7 +14,6 @@ it is never given to ``git``.
 from __future__ import annotations
 
 import asyncio
-import os
 import re
 import subprocess
 import tempfile
@@ -24,6 +23,7 @@ from pathlib import Path
 import httpx
 
 from agents_core._fs import directory_size, force_rmtree
+from agents_core.config import get_settings
 from agents_core.errors import InvalidTargetError, LimitExceededError, LoaderError
 from agents_core.loaders.base import Loader, LoaderLimits, Workspace
 from agents_core.loaders.filters import FilterConfig
@@ -71,7 +71,10 @@ class GitHubLoader(Loader):
         self.filters = filters or FilterConfig()
         self.allow_non_github_urls = allow_non_github_urls  # tests only (file:// fixtures)
         self.api_base = api_base.rstrip("/")
-        self.github_token = github_token or os.environ.get("GITHUB_TOKEN") or None
+        if github_token is None:
+            secret = get_settings().github_token  # GITHUB_TOKEN env var or .env
+            github_token = secret.get_secret_value() if secret else None
+        self.github_token = github_token or None
         self._http_client = http_client
 
     @staticmethod

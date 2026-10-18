@@ -99,3 +99,15 @@ async def test_workspace_warnings_reach_the_result(tmp_path: Path) -> None:
     assert result.status == "ok" and result.data == {"files": 1}
     assert result.warnings == ["'branch' is ignored for local paths"]
     assert events == ["load"]
+
+
+def test_token_comes_from_env_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    env = tmp_path / ".env"
+    env.write_text("GITHUB_TOKEN=from-dotenv\n", encoding="utf-8")
+    monkeypatch.setenv("AGENTS_LIB_ENV_FILE", str(env))
+    assert GitHubLoader().github_token == "from-dotenv"
+    monkeypatch.setenv("GITHUB_TOKEN", "from-env")
+    assert GitHubLoader().github_token == "from-env"  # real environment variables win
+    monkeypatch.setenv("AGENTS_LIB_ENV_FILE", "")
+    monkeypatch.delenv("GITHUB_TOKEN")
+    assert GitHubLoader().github_token is None
