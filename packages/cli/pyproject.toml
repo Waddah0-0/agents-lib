@@ -13,9 +13,6 @@ dependencies = [
 [project.scripts]
 agents = "agents_cli.main:app"
 
-[tool.uv.sources]
-agents-lib-core = { workspace = true }
-
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

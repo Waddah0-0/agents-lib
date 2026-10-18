@@ -40,5 +40,8 @@ jobs:
       - name: Type check with Mypy
         run: uv run python scripts/typecheck.py
 
+      - name: Check agent folders follow the sub-repo standard
+        run: uv run python scripts/check_agents.py
+
       - name: Run tests with Pytest
         run: uv run pytest

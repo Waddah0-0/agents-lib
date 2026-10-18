@@ -22,7 +22,7 @@ def targets() -> list[list[str]]:
     groups = [
         [str(p)] for pattern in ("packages/*", "agents/*") for p in sorted(ROOT.glob(pattern))
     ]
-    loose = [str(ROOT / "conftest.py"), str(ROOT / "scripts")]
+    loose = [str(ROOT / "conftest.py"), str(ROOT / "scripts"), str(ROOT / "tests")]
     return [g for g in groups if Path(g[0]).is_dir()] + [loose]
 
 

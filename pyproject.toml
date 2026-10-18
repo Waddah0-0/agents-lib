@@ -15,6 +15,10 @@ dev = [
     "pre-commit>=3.7.0",
 ]
 
+[tool.agents-lib]
+repository = "https://github.com/Waddah0-0/agents-lib"
+mirror-owner = "Waddah0-0"
+
 [tool.uv.workspace]
 members = [
     "packages/*",
@@ -65,5 +69,6 @@ addopts = "-ra -q --import-mode=importlib"
 testpaths = [
     "packages",
     "agents",
+    "tests",
 ]
 asyncio_mode = "auto"

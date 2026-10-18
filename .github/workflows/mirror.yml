@@ -1,0 +1,32 @@
+name: Mirror agents
+
+# Mirrors each agent folder (with its own history) to its own read-only repository, after CI
+# has passed on main. Without the MIRROR_TOKEN secret it only computes the splits (dry run).
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: mirror-agents
+  cancel-in-progress: false
+
+jobs:
+  mirror:
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the commit CI tested
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          fetch-depth: 0
+          # The mirror token is sent as its own auth header; a stored checkout token would clash.
+          persist-credentials: false
+
+      - name: Mirror agents
+        env:
+          MIRROR_TOKEN: ${{ secrets.MIRROR_TOKEN }}
+        run: python3 scripts/mirror_agents.py --push

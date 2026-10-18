@@ -11,8 +11,10 @@ dependencies = [
 [project.entry-points."agents_lib.agents"]
 echo = "echo_agent.agent:EchoAgent"
 
-[tool.uv.sources]
-agents-lib-core = { workspace = true }
+[tool.agents-lib]
+id = "echo"
+stage = "stable"
+# Not mirrored: echo is a test fixture and template, not a real agent.
 
 [build-system]
 requires = ["hatchling"]
