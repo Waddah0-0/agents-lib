@@ -25,6 +25,7 @@ class EchoAgent(BaseAgent):
     version = "0.1.0"
     InputModel = EchoInput
     OutputModel = EchoOutput
+    primary_input = "message"
 
     async def run(self, input: EchoInput, ctx: RunContext) -> AgentResult:
         ctx.report_progress("echo", "Echoing message", 0.0)
