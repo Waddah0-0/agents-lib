@@ -105,3 +105,11 @@ async def test_make_result_validates_output() -> None:
 def test_output_validation_error_type() -> None:
     with pytest.raises(ValidationError):
         Doubler().make_result(summary="x", output=In(n=1))
+
+
+async def test_model_is_reported_only_when_used() -> None:
+    llm = MockLLM()
+    unused = await Doubler(llm=llm).execute({"n": 1})
+    used = await Doubler(llm=llm).execute({"n": 42})
+    assert unused.metadata.model is None
+    assert used.metadata.model == "mock-model"

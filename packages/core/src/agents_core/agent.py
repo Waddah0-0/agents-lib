@@ -147,6 +147,7 @@ class BaseAgent(ABC):
             version=cls.version,
             input_schema=cls.InputModel.model_json_schema(),
             output_schema=cls.OutputModel.model_json_schema(),
+            primary_input=cls.primary_input,
         )
 
     @classmethod
@@ -228,13 +229,14 @@ class BaseAgent(ABC):
         finally:
             ctx.llm = caller_llm
 
+        used_model = session.model if session is not None and session.usage.llm_calls else None
         warnings = _merge_unique(result.warnings, ctx.warnings, session.warnings if session else [])
         metadata = result.metadata.model_copy(
             update={
                 "started_at": started_at,
                 "finished_at": datetime.now(UTC),
                 "duration_s": round(time.perf_counter() - t0, 4),
-                "model": result.metadata.model or (session.model if session else None),
+                "model": result.metadata.model or used_model,
                 "usage": session.usage if session else TokenUsage(),
             }
         )

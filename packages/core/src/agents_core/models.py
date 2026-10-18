@@ -124,3 +124,6 @@ class AgentInfo(_StrictModel):
     version: str
     input_schema: dict[str, Any]
     output_schema: dict[str, Any]
+    primary_input: str | None = Field(
+        default=None, description="Input field filled by a positional CLI argument."
+    )
