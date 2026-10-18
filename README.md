@@ -116,22 +116,14 @@ with a larger one, for example `OLLAMA_CONTEXT_LENGTH=8192`. And their judgment 
 than that of the large hosted models. Anthropic and OpenAI remain available for when that
 matters: set `DEFAULT_LLM_PROVIDER` to `anthropic` or `openai` and add the matching API key.
 
-## The first agent: AI Code Detector
+## Agents
 
-The first agent will estimate how likely it is that a repository, or parts of it, was
-written with AI assistance. It will show its reasons alongside the estimate. It combines
-two kinds of evidence:
+Click an agent's name for what it does, how to use it, and its limits.
 
-- **Cheap, explicit signals.** Examples: config files left behind by AI coding tools,
-  `Co-authored-by` trailers that name an AI assistant, whole projects arriving in a single
-  commit, and comments that only restate the line below them.
-- **A model acting as a judge.** It reviews a sample of files, quotes the specific lines
-  behind its opinion, and lists evidence against its own conclusion.
-
-It will report a range and a confidence level, never a bare verdict. No tool can prove that
-code was written by AI: clean human code can look machine-made, and edited AI code can look
-human. The detector is meant to inform a conversation. It must not be the sole basis for
-accusing a student, a contractor or a job candidate.
+| Agent | What it does | State |
+|---|---|---|
+| [AI Code Detector](agents/ai_code_detector/README.md) | Estimates how likely a codebase was written with AI assistance, and shows the evidence. | In progress |
+| [Echo](agents/echo/README.md) | Echoes its input back. A reference agent for testing and for copying when you write a new one. | Ready |
 
 ## Status
 
