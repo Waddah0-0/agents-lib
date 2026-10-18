@@ -150,7 +150,7 @@ verdict = await ctx.require_llm().complete_structured(Verdict, prompt, system=RU
 ```
 
 `complete_structured` passes the schema to the server, so local models are constrained to
-valid JSON. The default model is local (Ollama, `qwen2.5:7b`), with a context window that
+valid JSON. The default model is local (Ollama, `qwen3.5:9b`), with a context window that
 may be as small as 8,192 tokens. Keep prompts well under it, and expect each call to take
 seconds.
 

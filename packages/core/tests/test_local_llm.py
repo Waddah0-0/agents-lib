@@ -141,7 +141,7 @@ def _settings(**values: Any) -> Settings:
 def test_create_llm_defaults_to_local() -> None:
     llm = create_llm(settings=_settings())
     assert isinstance(llm, LocalLLM)
-    assert llm.model == "qwen2.5:7b"
+    assert llm.model == "qwen3.5:9b"
     assert llm.base_url == "http://localhost:11434"
 
 

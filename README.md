@@ -99,8 +99,11 @@ touches the network.
 ## Local models by default
 
 Agents run against a model on your own machine unless you say otherwise, so using them
-costs nothing. The default is [Ollama](https://ollama.com) with `qwen2.5:7b`, a model
-that runs comfortably on an 8 GB GPU. Any server that speaks the OpenAI chat API works:
+costs nothing. The default is [Ollama](https://ollama.com) with `qwen3.5:9b`, which runs
+on an 8 GB GPU and was chosen by measurement: it judged code clearly better than
+`qwen2.5:7b`, `qwen2.5-coder:7b` and `gemma4:e4b` in a head-to-head on the same files. It
+is a "thinking" model; agents-lib turns its hidden reasoning off, because otherwise it can
+spend its whole answer on reasoning. Any server that speaks the OpenAI chat API works:
 
 | Server | `LOCAL_LLM_BASE_URL` |
 |---|---|
@@ -153,7 +156,7 @@ git clone https://github.com/Waddah0-0/agents-lib.git
 cd agents-lib
 uv sync --all-packages
 cp .env.example .env        # optional; the defaults work with a local Ollama
-ollama pull qwen2.5:7b      # only needed for agents that call a model
+ollama pull qwen3.5:9b      # only needed for agents that call a model
 ```
 
 Every installed agent can be run from the `agents` command:

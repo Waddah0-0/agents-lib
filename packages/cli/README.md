@@ -39,7 +39,7 @@ Giving the main field both positionally and with `--set` is an error.
 | `--format markdown\|json`, `-f` | Report format. Default: JSON when `--out` ends in `.json`, otherwise Markdown. |
 | `--out PATH`, `-o` | Write the report to a file instead of stdout. |
 | `--provider NAME` | LLM provider: `local` (default), `anthropic`, `openai` or `mock`. |
-| `--model NAME` | Model name, e.g. `qwen2.5:7b`. |
+| `--model NAME` | Model name, e.g. `qwen3.5:9b`. |
 | `--max-cost USD` | Spending limit for this run (only matters for hosted providers). |
 | `--quiet`, `-q` | No progress display. |
 | `--strict` | Treat a partial result as a failure (exit code 4). |

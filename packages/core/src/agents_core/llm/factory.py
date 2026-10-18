@@ -11,7 +11,7 @@ from agents_core.llm.mock import MockLLM
 from agents_core.llm.openai import OpenAILLM
 
 DEFAULT_MODELS: dict[str, str] = {
-    "local": "qwen2.5:7b",
+    "local": "qwen3.5:9b",  # chosen by eval/tools/compare_judges.py (2026-10-19)
     "anthropic": "claude-sonnet-4-5",
     "openai": "gpt-4.1-mini",
     "mock": "mock-model",
