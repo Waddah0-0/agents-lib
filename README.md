@@ -54,7 +54,7 @@ inside it can be versioned and published on its own:
 | Path | What it is |
 |---|---|
 | `packages/core` | The shared foundation: the agent contract, result models, registry, loaders, LLM clients and reporting. |
-| `packages/cli` | The `agents` command-line tool (placeholder for now). |
+| `packages/cli` | The `agents` command-line tool. |
 | `packages/api` | The FastAPI server for running agents over HTTP (placeholder for now). |
 | `agents/echo` | A minimal reference agent, used for smoke tests and as a template. |
 | `agents/ai_code_detector` | The first real agent (in progress). |
@@ -136,8 +136,8 @@ The project is built in phases, each one usable before the next begins.
 | 0 | Repository skeleton, tooling, CI | Done |
 | 1 | Core: contract, models, registry, loaders, LLM clients, reporting | Done |
 | 1.5 | Core fixes (per-run LLM budgets, git history scoped to the target, safer clones) and the agent sub-repo standard | Done |
-| 2 | Command-line tool (`agents list`, `agents info`, `agents run`) | Next |
-| 3 | AI Code Detector with heuristic signals, plus the evaluation harness that measures it | Planned |
+| 2 | Command-line tool (`agents list`, `agents info`, `agents run`) | Done |
+| 3 | AI Code Detector with heuristic signals, plus the evaluation harness that measures it | Next |
 | 4 | LLM judge, larger evaluation dataset, calibrated scoring | Planned |
 | 5 | HTTP API with background runs and live progress | Planned |
 | 6–7 | Web UI: a generic one for every agent, plus a custom view for the detector | Planned |
@@ -156,8 +156,21 @@ cp .env.example .env        # optional; the defaults work with a local Ollama
 ollama pull qwen2.5:7b      # only needed for agents that call a model
 ```
 
-Until the CLI lands, you run agents from Python. This runs the reference echo agent through
-the registry:
+Every installed agent can be run from the `agents` command:
+
+```bash
+uv run agents list                       # installed agents
+uv run agents info echo                  # what an agent takes as input
+uv run agents run echo hello --set repeat=2
+uv run agents run echo hello --format json --out report.json
+```
+
+The positional value fills the agent's main input field; `--set field=value` fills any other
+field, and `--input file.json` reads them from a file. Reports go to stdout (or `--out`), and
+progress and warnings go to stderr, so JSON output can be piped safely. See
+[the CLI's README](packages/cli/README.md) for every option and exit code.
+
+The same agents can be used from Python:
 
 ```python
 import asyncio
