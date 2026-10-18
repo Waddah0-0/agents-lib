@@ -1,4 +1,9 @@
-"""Provider-agnostic LLM client with retries, timeouts, cost tracking and a budget cap."""
+"""Provider-agnostic LLM client with retries, timeouts, cost tracking and a budget cap.
+
+A client is long-lived and may be shared. Each agent run talks to a :class:`LLMSession`
+opened from it (see :meth:`LLMClient.session`), so usage, warnings and the budget are
+tracked per run while the client keeps lifetime totals.
+"""
 
 from __future__ import annotations
 
@@ -8,7 +13,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable, Sequence
 from typing import Any, ClassVar, Literal, TypedDict, TypeVar
 
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, Field, ValidationError
 
 from agents_core.errors import BudgetExceededError, LLMError, TransientLLMError
 from agents_core.llm.pricing import ModelPricing, lookup_pricing
@@ -38,6 +43,9 @@ class LLMResponse(BaseModel):
     input_tokens: int = 0
     output_tokens: int = 0
     cost_usd: float = 0.0
+    warnings: list[str] = Field(
+        default_factory=list, description="Problems noticed by the provider, e.g. truncation."
+    )
 
 
 class LLMClientOptions(TypedDict, total=False):
@@ -109,7 +117,20 @@ class LLMClient(ABC):
         self.max_retries = max_retries
         self.backoff_base_s = backoff_base_s
         self.pricing = pricing or lookup_pricing(self.provider, model)
+        self.parent: LLMClient | None = None
         self._usage = TokenUsage()
+        self._warnings: list[str] = []
+
+    def session(self, *, max_cost_usd: float | None = None) -> LLMSession:
+        """Open a per-run view of this client with its own usage, warnings and budget.
+
+        Calls through the session also count toward this client (and its budget, if any).
+        """
+        return LLMSession(self, max_cost_usd=max_cost_usd)
+
+    async def context_window(self) -> int | None:
+        """The model's context window in tokens, if the provider can tell; else ``None``."""
+        return None
 
     # ---- accounting -----------------------------------------------------------------
 
@@ -123,6 +144,19 @@ class LLMClient(ABC):
         if self.max_cost_usd is None:
             return None
         return max(0.0, self.max_cost_usd - self._usage.cost_usd)
+
+    @property
+    def warnings(self) -> list[str]:
+        """Distinct provider warnings collected so far, in order of first appearance."""
+        return list(self._warnings)
+
+    def _record(self, usage: TokenUsage, warnings: Sequence[str]) -> None:
+        self._usage = self._usage + usage
+        for warning in warnings:
+            if warning not in self._warnings:
+                self._warnings.append(warning)
+        if self.parent is not None:
+            self.parent._record(usage, warnings)
 
     def estimate_cost(
         self, messages: Sequence[Message], system: str | None, max_tokens: int
@@ -143,6 +177,13 @@ class LLMClient(ABC):
                 f"(spent ${self._usage.cost_usd:.4f}, next call up to ${estimate:.4f})"
             )
 
+    def _check_budgets(
+        self, messages: Sequence[Message], system: str | None, max_tokens: int
+    ) -> None:
+        self._check_budget(messages, system, max_tokens)
+        if self.parent is not None:
+            self.parent._check_budgets(messages, system, max_tokens)
+
     # ---- public API -----------------------------------------------------------------
 
     async def complete(
@@ -160,17 +201,20 @@ class LLMClient(ABC):
         it; providers without that support ignore it.
         """
         messages = _normalize(prompt)
-        self._check_budget(messages, system, max_tokens)
+        self._check_budgets(messages, system, max_tokens)
         response = await self._with_retries(
             lambda: self._complete_raw(messages, system, max_tokens, temperature, json_schema)
         )
         cost = self.pricing.cost(response.input_tokens, response.output_tokens)
         response = response.model_copy(update={"cost_usd": cost})
-        self._usage = self._usage + TokenUsage(
-            llm_calls=1,
-            input_tokens=response.input_tokens,
-            output_tokens=response.output_tokens,
-            cost_usd=cost,
+        self._record(
+            TokenUsage(
+                llm_calls=1,
+                input_tokens=response.input_tokens,
+                output_tokens=response.output_tokens,
+                cost_usd=cost,
+            ),
+            response.warnings,
         )
         return response
 
@@ -250,3 +294,45 @@ class LLMClient(ABC):
         json_schema: dict[str, Any] | None = None,
     ) -> LLMResponse:
         """Perform one provider call. Raise :class:`TransientLLMError` for retryable failures."""
+
+
+class LLMSession(LLMClient):
+    """A per-run view of a client: same provider and model, separate usage and budget.
+
+    Provider calls are delegated to the parent client; retries and timeouts use the
+    parent's settings.
+    """
+
+    provider: ClassVar[str] = "session"
+
+    def __init__(self, parent: LLMClient, *, max_cost_usd: float | None = None) -> None:
+        super().__init__(
+            parent.model,
+            max_cost_usd=max_cost_usd,
+            timeout_s=parent.timeout_s,
+            max_retries=parent.max_retries,
+            backoff_base_s=parent.backoff_base_s,
+            pricing=parent.pricing,
+        )
+        self.parent = parent
+
+    @property
+    def client(self) -> LLMClient:
+        """The underlying provider client."""
+        assert self.parent is not None
+        return self.parent
+
+    async def context_window(self) -> int | None:
+        return await self.client.context_window()
+
+    async def _complete_raw(
+        self,
+        messages: list[Message],
+        system: str | None,
+        max_tokens: int,
+        temperature: float | None,
+        json_schema: dict[str, Any] | None = None,
+    ) -> LLMResponse:
+        return await self.client._complete_raw(
+            messages, system, max_tokens, temperature, json_schema
+        )

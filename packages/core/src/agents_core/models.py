@@ -81,7 +81,17 @@ class AgentInput(_StrictModel):
 
 
 class AgentResult(_StrictModel):
-    """The standard result returned by every agent."""
+    """The standard result returned by every agent.
+
+    ``status`` semantics:
+
+    - ``ok``: everything requested was done. ``error`` is null.
+    - ``partial``: a usable result, but some requested work was skipped (a budget or time cap
+      was hit, some files were unreadable, an optional step was unavailable). Each skipped
+      part has an entry in ``warnings``. ``data`` is complete in shape but may hold fewer
+      items. ``error`` is null.
+    - ``error``: no usable result. ``data`` is empty and ``error`` holds the message.
+    """
 
     agent_id: str
     agent_version: str

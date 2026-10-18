@@ -7,7 +7,7 @@ import time
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Mapping, Sequence
 from datetime import UTC, datetime
-from typing import Any, ClassVar
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from pydantic import BaseModel, ValidationError
 
@@ -22,6 +22,10 @@ from agents_core.models import (
     ResultStatus,
     TokenUsage,
 )
+
+if TYPE_CHECKING:
+    from agents_core.loaders.base import LoaderLimits, Workspace
+    from agents_core.loaders.filters import FilterConfig
 
 ProgressCallback = Callable[[ProgressEvent], None]
 
@@ -43,7 +47,12 @@ class CancellationToken:
 
 
 class RunContext:
-    """Per-run services handed to :meth:`BaseAgent.run`."""
+    """Per-run services handed to :meth:`BaseAgent.run`.
+
+    During :meth:`BaseAgent.execute`, ``llm`` is a per-run :class:`LLMSession` opened from the
+    configured client, limited by ``max_cost_usd``. Anything added with :meth:`warn` ends up in
+    the result's ``warnings``.
+    """
 
     def __init__(
         self,
@@ -52,17 +61,49 @@ class RunContext:
         progress: ProgressCallback | None = None,
         cancel_token: CancellationToken | None = None,
         logger: logging.Logger | None = None,
+        max_cost_usd: float | None = None,
     ) -> None:
         self.llm = llm
         self.progress = progress
         self.cancel_token = cancel_token or CancellationToken()
         self.logger = logger or get_logger("run")
+        self.max_cost_usd = max_cost_usd
+        self.warnings: list[str] = []
+
+    def warn(self, message: str) -> None:
+        """Record a warning for the result (duplicates are ignored)."""
+        self.logger.warning(message)
+        if message not in self.warnings:
+            self.warnings.append(message)
 
     def report_progress(self, stage: str, message: str = "", fraction: float | None = None) -> None:
         """Emit a progress event to the caller (CLI spinner, API SSE stream, ...)."""
         self.logger.debug("progress stage=%s fraction=%s %s", stage, fraction, message)
         if self.progress is not None:
             self.progress(ProgressEvent(stage=stage, message=message, fraction=fraction))
+
+    async def load_workspace(
+        self,
+        target: str,
+        *,
+        paths: Sequence[str] | None = None,
+        branch: str | None = None,
+        limits: LoaderLimits | None = None,
+        filters: FilterConfig | None = None,
+    ) -> Workspace:
+        """Load ``target`` (GitHub URL or local path), reporting progress and warnings.
+
+        Use the returned workspace with ``async with`` so temporary clones are removed.
+        """
+        from agents_core.loaders import load_workspace
+
+        self.report_progress("load", f"Loading {target}")
+        workspace = await load_workspace(
+            target, paths=paths, branch=branch, limits=limits, filters=filters
+        )
+        for warning in workspace.warnings:
+            self.warn(warning)
+        return workspace
 
     def check_cancelled(self) -> None:
         """Raise :class:`RunCancelledError` if the run was cancelled. Call between steps."""
@@ -90,6 +131,8 @@ class BaseAgent(ABC):
     version: ClassVar[str]
     InputModel: ClassVar[type[BaseModel]]
     OutputModel: ClassVar[type[BaseModel]]
+    primary_input: ClassVar[str | None] = None
+    """Input field filled by the CLI's positional argument (and shown first in forms)."""
 
     def __init__(self, llm: LLMClient | None = None, config: Mapping[str, Any] | None = None):
         self.llm = llm
@@ -168,9 +211,10 @@ class BaseAgent(ABC):
         """
         parsed = self.parse_input(raw_input)
         ctx = ctx or RunContext()
-        if ctx.llm is None:
-            ctx.llm = self.llm
-        usage_before = ctx.llm.usage if ctx.llm else TokenUsage()
+        caller_llm = ctx.llm
+        client = caller_llm if caller_llm is not None else self.llm
+        session = client.session(max_cost_usd=ctx.max_cost_usd) if client is not None else None
+        ctx.llm = session
         started_at = datetime.now(UTC)
         t0 = time.perf_counter()
         try:
@@ -181,15 +225,26 @@ class BaseAgent(ABC):
         except Exception as exc:
             ctx.logger.exception("Agent %s failed", self.id)
             result = self._error_result(f"{type(exc).__name__}: {exc}")
+        finally:
+            ctx.llm = caller_llm
 
-        usage = (ctx.llm.usage - usage_before) if ctx.llm else TokenUsage()
+        warnings = _merge_unique(result.warnings, ctx.warnings, session.warnings if session else [])
         metadata = result.metadata.model_copy(
             update={
                 "started_at": started_at,
                 "finished_at": datetime.now(UTC),
                 "duration_s": round(time.perf_counter() - t0, 4),
-                "model": result.metadata.model or (ctx.llm.model if ctx.llm else None),
-                "usage": usage,
+                "model": result.metadata.model or (session.model if session else None),
+                "usage": session.usage if session else TokenUsage(),
             }
         )
-        return result.model_copy(update={"metadata": metadata})
+        return result.model_copy(update={"metadata": metadata, "warnings": warnings})
+
+
+def _merge_unique(*groups: Sequence[str]) -> list[str]:
+    merged: list[str] = []
+    for group in groups:
+        for item in group:
+            if item not in merged:
+                merged.append(item)
+    return merged

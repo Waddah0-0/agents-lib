@@ -30,11 +30,17 @@ def _completion(
 
 
 def _client(
-    handler: Callable[[httpx.Request], httpx.Response], **kwargs: Any
+    handler: Callable[[httpx.Request], httpx.Response],
+    *,
+    ps: httpx.Response | None = None,
+    **kwargs: Any,
 ) -> tuple[LocalLLM, list[dict[str, Any]]]:
+    """A LocalLLM wired to a fake server. ``ps`` answers Ollama's /api/ps (default: 404)."""
     seen: list[dict[str, Any]] = []
 
     def record(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/api/ps":
+            return ps if ps is not None else httpx.Response(404)
         seen.append(
             {"url": str(request.url), "headers": request.headers, **json.loads(request.content)}
         )
@@ -161,3 +167,49 @@ async def test_mock_records_json_schema() -> None:
     await llm.complete_structured(Verdict, "judge")
     assert llm.calls[0].json_schema is not None
     assert llm.calls[0].json_schema["title"] == "Verdict"
+
+
+def _ollama_ps(context_length: int, name: str = "qwen2.5:7b") -> httpx.Response:
+    return httpx.Response(
+        200, json={"models": [{"name": name, "model": name, "context_length": context_length}]}
+    )
+
+
+async def test_truncation_warning_when_prompt_fills_ollama_window() -> None:
+    llm, _ = _client(
+        lambda _: httpx.Response(200, json=_completion("ok", prompt_tokens=8192)),
+        ps=_ollama_ps(8192),
+    )
+    response = await llm.complete("x" * 50_000)
+    assert await llm.context_window() == 8192
+    assert len(response.warnings) == 1 and "8192 tokens" in response.warnings[0]
+    assert llm.warnings == response.warnings
+
+
+async def test_no_warning_when_prompt_fits_ollama_window() -> None:
+    llm, _ = _client(
+        lambda _: httpx.Response(200, json=_completion("ok", prompt_tokens=1900)),
+        ps=_ollama_ps(8192),
+    )
+    assert (await llm.complete("x" * 6000)).warnings == []
+
+
+async def test_model_not_loaded_yet_is_probed_again() -> None:
+    llm, _ = _client(
+        lambda _: httpx.Response(200, json=_completion("ok")),
+        ps=_ollama_ps(4096, name="other-model"),
+    )
+    await llm.complete("hi")
+    assert llm._context_probes_left == 2
+
+
+async def test_ratio_heuristic_for_servers_without_window() -> None:
+    llm, _ = _client(lambda _: httpx.Response(200, json=_completion("ok", prompt_tokens=500)))
+    response = await llm.complete("x" * 40_000)
+    assert await llm.context_window() is None
+    assert len(response.warnings) == 1 and "probably truncated" in response.warnings[0]
+
+
+async def test_short_prompts_never_warn_without_window() -> None:
+    llm, _ = _client(lambda _: httpx.Response(200, json=_completion("ok", prompt_tokens=1)))
+    assert (await llm.complete("x" * 1000)).warnings == []

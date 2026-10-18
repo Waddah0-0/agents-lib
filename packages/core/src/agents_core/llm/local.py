@@ -4,6 +4,11 @@ Works with Ollama (default, ``http://localhost:11434``), LM Studio (``:1234``),
 llama.cpp ``llama-server`` (``:8080``) and vLLM (``:8000``). Calls are free, so pricing is
 zero and the budget cap never triggers; timeouts are longer because the first call may
 have to load the model into memory.
+
+OpenAI-compatible servers silently truncate prompts that exceed the model's context window.
+For Ollama the window is read from ``/api/ps`` (an overflowing prompt is reported as exactly
+the window size); for other servers a ratio heuristic catches gross truncation. Either way
+the response carries a warning instead of failing.
 """
 
 from __future__ import annotations
@@ -20,6 +25,13 @@ from agents_core.llm.base import LLMClient, LLMClientOptions, LLMResponse, Messa
 from agents_core.llm.pricing import FREE
 
 DEFAULT_BASE_URL = "http://localhost:11434"
+
+# Fallback truncation heuristic for servers that do not report their context window. Code
+# averages about 3 characters per token, so a reported count below 0.6 x (chars / 4) means
+# a large share of the prompt was dropped.
+TRUNCATION_RATIO = 0.6
+MIN_CHARS_FOR_RATIO_CHECK = 4000
+MAX_CONTEXT_PROBES = 3
 
 
 def _normalize_base_url(base_url: str) -> str:
@@ -58,6 +70,64 @@ class LocalLLM(LLMClient):
         self._api_key = api_key  # only for servers started with an API key (e.g. vLLM)
         self.structured_output = structured_output
         self._http_client = http_client
+        self._context_window: int | None = None
+        self._context_probes_left = MAX_CONTEXT_PROBES
+
+    async def context_window(self) -> int | None:
+        """Context window of the loaded model (Ollama only), cached once known."""
+        if self._context_window is None and self._context_probes_left > 0:
+            self._context_probes_left -= 1
+            self._context_window = await self._probe_context_window()
+        return self._context_window
+
+    async def _probe_context_window(self) -> int | None:
+        url = f"{self.base_url}/api/ps"
+        try:
+            if self._http_client is not None:
+                response = await self._http_client.get(url, timeout=5.0)
+            else:
+                async with httpx.AsyncClient(timeout=5.0) as client:
+                    response = await client.get(url)
+        except httpx.HTTPError:
+            self._context_probes_left = 0
+            return None
+        if response.status_code != 200:
+            self._context_probes_left = 0  # not Ollama; it will not start answering later
+            return None
+        try:
+            models = response.json().get("models") or []
+        except ValueError:
+            self._context_probes_left = 0
+            return None
+        names = {self.model, f"{self.model}:latest"}
+        for entry in models:
+            if isinstance(entry, dict) and (
+                entry.get("name") in names or entry.get("model") in names
+            ):
+                window = entry.get("context_length")
+                return window if isinstance(window, int) and window > 0 else None
+        return None  # model not loaded yet; probe again after a later call
+
+    async def _truncation_warning(self, prompt_chars: int, prompt_tokens: int) -> str | None:
+        window = await self.context_window()
+        if window is not None:
+            if prompt_tokens >= window:
+                return (
+                    f"A prompt filled the local model's whole context window ({window} tokens) "
+                    "and was probably truncated. Raise the window (Ollama: "
+                    "OLLAMA_CONTEXT_LENGTH) or send less text."
+                )
+            return None
+        expected = prompt_chars / 4
+        if (
+            prompt_chars >= MIN_CHARS_FOR_RATIO_CHECK
+            and prompt_tokens < TRUNCATION_RATIO * expected
+        ):
+            return (
+                "A prompt was probably truncated by the local LLM server (it counted far fewer "
+                "tokens than were sent). Raise the server's context window or send less text."
+            )
+        return None
 
     async def _complete_raw(
         self,
@@ -106,4 +176,9 @@ class LocalLLM(LLMClient):
                     f"(Ollama: `ollama pull {self.model}`)"
                 ) from exc
             raise
-        return parse_chat_completion(data, self.model, "local LLM")
+        response = parse_chat_completion(data, self.model, "local LLM")
+        prompt_chars = sum(len(m.content) for m in messages) + len(system or "")
+        warning = await self._truncation_warning(prompt_chars, response.input_tokens)
+        if warning:
+            response = response.model_copy(update={"warnings": [*response.warnings, warning]})
+        return response
