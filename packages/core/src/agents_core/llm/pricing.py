@@ -41,6 +41,7 @@ DEFAULT_PRICING: dict[str, dict[str, ModelPricing]] = {
         "gpt-4.1-mini": ModelPricing(input_per_mtok=0.4, output_per_mtok=1.6),
         "gpt-4.1": ModelPricing(input_per_mtok=2.0, output_per_mtok=8.0),
     },
+    "local": {"": FREE},
     "mock": {"": FREE},
 }
 

@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
-from typing import ClassVar, Unpack
+from typing import Any, ClassVar, Unpack
 
 from agents_core.llm.base import LLMClient, LLMClientOptions, LLMResponse, Message
 from agents_core.llm.pricing import FREE
@@ -20,6 +20,7 @@ class MockCall:
     messages: list[Message]
     system: str | None
     max_tokens: int
+    json_schema: dict[str, Any] | None = None
 
 
 class MockLLM(LLMClient):
@@ -56,8 +57,16 @@ class MockLLM(LLMClient):
         system: str | None,
         max_tokens: int,
         temperature: float | None,
+        json_schema: dict[str, Any] | None = None,
     ) -> LLMResponse:
-        self.calls.append(MockCall(messages=list(messages), system=system, max_tokens=max_tokens))
+        self.calls.append(
+            MockCall(
+                messages=list(messages),
+                system=system,
+                max_tokens=max_tokens,
+                json_schema=json_schema,
+            )
+        )
         if self._responder is not None:
             text = self._responder(messages, system)
         elif self._queue:

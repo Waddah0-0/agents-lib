@@ -6,7 +6,7 @@ import asyncio
 import json
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable, Sequence
-from typing import ClassVar, Literal, TypedDict, TypeVar
+from typing import Any, ClassVar, Literal, TypedDict, TypeVar
 
 from pydantic import BaseModel, ValidationError
 
@@ -152,12 +152,17 @@ class LLMClient(ABC):
         system: str | None = None,
         max_tokens: int = 1024,
         temperature: float | None = 0.0,
+        json_schema: dict[str, Any] | None = None,
     ) -> LLMResponse:
-        """Run a text completion."""
+        """Run a text completion.
+
+        ``json_schema`` asks providers that support constrained decoding to emit JSON matching
+        it; providers without that support ignore it.
+        """
         messages = _normalize(prompt)
         self._check_budget(messages, system, max_tokens)
         response = await self._with_retries(
-            lambda: self._complete_raw(messages, system, max_tokens, temperature)
+            lambda: self._complete_raw(messages, system, max_tokens, temperature, json_schema)
         )
         cost = self.pricing.cost(response.input_tokens, response.output_tokens)
         response = response.model_copy(update={"cost_usd": cost})
@@ -184,17 +189,22 @@ class LLMClient(ABC):
         On invalid output the model is shown the error and asked to repair its reply,
         up to ``max_repair_attempts`` times.
         """
+        json_schema = schema.model_json_schema()
         instructions = (
             "Respond with a single JSON object that validates against this JSON Schema. "
             "Output only the JSON, with no prose and no code fences.\n"
-            f"JSON Schema:\n{json.dumps(schema.model_json_schema())}"
+            f"JSON Schema:\n{json.dumps(json_schema)}"
         )
         full_system = f"{system}\n\n{instructions}" if system else instructions
         messages = _normalize(prompt)
         last_error: Exception | None = None
         for _attempt in range(max_repair_attempts + 1):
             response = await self.complete(
-                messages, system=full_system, max_tokens=max_tokens, temperature=temperature
+                messages,
+                system=full_system,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                json_schema=json_schema,
             )
             try:
                 return schema.model_validate_json(extract_json(response.text))
@@ -237,5 +247,6 @@ class LLMClient(ABC):
         system: str | None,
         max_tokens: int,
         temperature: float | None,
+        json_schema: dict[str, Any] | None = None,
     ) -> LLMResponse:
         """Perform one provider call. Raise :class:`TransientLLMError` for retryable failures."""

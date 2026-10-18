@@ -43,6 +43,7 @@ class AnthropicLLM(LLMClient):
         system: str | None,
         max_tokens: int,
         temperature: float | None,
+        json_schema: dict[str, Any] | None = None,
     ) -> LLMResponse:
         payload: dict[str, Any] = {
             "model": self.model,

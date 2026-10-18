@@ -13,7 +13,10 @@ class Settings(BaseSettings):
     openai_api_key: SecretStr | None = None
     github_token: SecretStr | None = None
 
-    default_llm_provider: str = "mock"
+    local_llm_base_url: str = "http://localhost:11434"
+    local_llm_api_key: SecretStr | None = None
+
+    default_llm_provider: str = "local"
     default_llm_model: str | None = None
     max_cost_usd: float = 1.0
     log_level: str = "INFO"

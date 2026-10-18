@@ -67,6 +67,7 @@ agents-lib/
 │   │   │   ├── registry.py         # discovers installed agents (entry points)
 │   │   │   ├── llm/
 │   │   │   │   ├── base.py         # LLMClient interface
+│   │   │   │   ├── local.py        # default: Ollama / LM Studio / llama.cpp / vLLM
 │   │   │   │   ├── anthropic.py
 │   │   │   │   ├── openai.py
 │   │   │   │   └── mock.py         # deterministic client for tests
@@ -241,8 +242,11 @@ Loader rules:
 ### 2.5 LLM abstraction
 
 - One `LLMClient` interface with `complete(...)` and `complete_structured(schema, ...)`.
-- Implementations: Anthropic, OpenAI, and a `MockLLM` that returns canned responses (required so tests never hit the network).
-- Built-in: retries with backoff, timeouts, token/cost tracking, and a hard per-run budget cap (e.g. `max_cost_usd`) so a big repo can't surprise you with a bill.
+- **Default provider: local models** (decision 2026-10-18, for cost). `LocalLLM` talks to any OpenAI-compatible local server: Ollama by default (`http://localhost:11434`), or LM Studio, llama.cpp `llama-server`, vLLM via `LOCAL_LLM_BASE_URL`. Default model `qwen2.5:7b` (fits an 8 GB GPU). Calls are priced at $0.
+- `complete_structured` passes the JSON schema down to the provider; `LocalLLM` sends it as `response_format: json_schema` (constrained decoding), which small local models need to emit valid JSON reliably.
+- Hosted providers (Anthropic, OpenAI) remain available as opt-in, plus a `MockLLM` that returns canned responses (required so tests never hit the network).
+- Built-in: retries with backoff, timeouts, token/cost tracking, and a hard per-run budget cap (e.g. `max_cost_usd`) so a big repo can't surprise you with a bill when a hosted provider is used.
+- Local-model caveats to design around: smaller context windows (Ollama: raise with `OLLAMA_CONTEXT_LENGTH`), slower calls (first call loads the model), and weaker judgment than frontier models, so the detector must lean on heuristic signals and the eval harness must measure the judge's real contribution.
 
 ### 2.6 Interfaces on top of the core
 
@@ -576,7 +580,8 @@ Without this you're guessing.
 | Risk | Mitigation |
 |---|---|
 | False positives harm real people | Ranges + confidence + evidence, strong disclaimers, optimize for low false-positive rate |
-| LLM cost blowups on large repos | Hard budget cap, sampling, caching per file hash |
+| LLM cost blowups on large repos | Local models by default ($0); hard budget cap for hosted providers, sampling, caching per file hash |
+| Local models are slow / small-context / less accurate | Sampling keeps judge calls few; chunk files to fit context; schema-constrained output; eval harness decides whether the judge helps |
 | Cloning untrusted repos is dangerous | Never execute repo code; clone to temp dir with size/time limits; validate URLs (only `https://github.com/...` by default); no submodule recursion |
 | Detection becomes outdated as models change | Versioned methodology, eval dataset refreshed regularly, signals are modular |
 | Over-engineering before value is proven | Follow the phase order; ship the CLI MVP before touching UI |
@@ -621,6 +626,6 @@ Each one should only require: a new folder in `agents/`, a class implementing `B
 
 - Final project name and PyPI/GitHub org name?
 - License: MIT (simplest) or Apache-2.0 (explicit patent grant)?
-- Default LLM provider/model for the judge? (Pick one, keep the interface pluggable.)
+- ~~Default LLM provider/model for the judge?~~ **Decided:** local (Ollama, `qwen2.5:7b`); hosted providers stay pluggable.
 - Should private repos be supported (GitHub token input)? If yes, add token handling and a security review first.
 - Hosted demo later, or local-only tool? This changes how seriously Phase 8 security needs to be taken.

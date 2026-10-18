@@ -8,6 +8,7 @@ from typing import Any, ClassVar, Unpack
 import httpx
 
 from agents_core.errors import LLMError
+from agents_core.llm._chat_completions import chat_messages, parse_chat_completion
 from agents_core.llm._http import post_json
 from agents_core.llm.base import LLMClient, LLMClientOptions, LLMResponse, Message
 
@@ -42,14 +43,11 @@ class OpenAILLM(LLMClient):
         system: str | None,
         max_tokens: int,
         temperature: float | None,
+        json_schema: dict[str, Any] | None = None,
     ) -> LLMResponse:
-        chat: list[dict[str, str]] = []
-        if system:
-            chat.append({"role": "system", "content": system})
-        chat.extend(m.model_dump() for m in messages)
         payload: dict[str, Any] = {
             "model": self.model,
-            "messages": chat,
+            "messages": chat_messages(messages, system),
             "max_completion_tokens": max_tokens,
         }
         if temperature is not None:
@@ -61,14 +59,4 @@ class OpenAILLM(LLMClient):
             timeout_s=self.timeout_s,
             client=self._http_client,
         )
-        try:
-            text = data["choices"][0]["message"].get("content") or ""
-            usage = data.get("usage", {})
-            return LLMResponse(
-                text=str(text),
-                model=str(data.get("model", self.model)),
-                input_tokens=int(usage.get("prompt_tokens", 0)),
-                output_tokens=int(usage.get("completion_tokens", 0)),
-            )
-        except (KeyError, IndexError, TypeError, AttributeError) as exc:
-            raise LLMError(f"Unexpected OpenAI response: {exc}") from exc
+        return parse_chat_completion(data, self.model, "OpenAI")
