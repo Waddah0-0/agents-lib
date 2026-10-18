@@ -59,6 +59,8 @@ inside it can be versioned and published on its own:
 | `agents/echo` | A minimal reference agent, used for smoke tests and as a template. |
 | `agents/ai_code_detector` | The first real agent (in progress). |
 | `examples/` | Small runnable scripts. |
+| `scripts/` | Workspace tools: create an agent, check agent folders, mirror agents, type-check. |
+| `tests/` | Tests for the workspace tools. |
 | `docs/` | Guides, starting with [writing an agent](docs/writing-an-agent.md). |
 
 ### The core, piece by piece
@@ -133,8 +135,8 @@ The project is built in phases, each one usable before the next begins.
 |---|---|---|
 | 0 | Repository skeleton, tooling, CI | Done |
 | 1 | Core: contract, models, registry, loaders, LLM clients, reporting | Done |
-| 1.5 | Core fixes: per-run LLM budgets, git history scoped to the target, safer clones | Next |
-| 2 | Command-line tool (`agents list`, `agents info`, `agents run`) | Planned |
+| 1.5 | Core fixes (per-run LLM budgets, git history scoped to the target, safer clones) and the agent sub-repo standard | Done |
+| 2 | Command-line tool (`agents list`, `agents info`, `agents run`) | Next |
 | 3 | AI Code Detector with heuristic signals, plus the evaluation harness that measures it | Planned |
 | 4 | LLM judge, larger evaluation dataset, calibrated scoring | Planned |
 | 5 | HTTP API with background runs and live progress | Planned |

@@ -1,187 +1,215 @@
-# Writing an Agent
+# Writing an agent
 
-This guide walks you through building and publishing a new agent in `agents-lib`.
+This guide covers everything a new agent needs: creating it, the code, tests, the README,
+and how it is published as its own repository.
 
----
+## 1. What an agent is
 
-## 1. The Agent Architecture
+An agent is a small package under `agents/` that does one job. Every agent:
 
-Every agent in `agents-lib` is an isolated package located in the `agents/` directory that adheres to the **Agent Contract**.
+- subclasses `BaseAgent` from `agents_core` and implements one async method, `run`;
+- declares typed input and output models (Pydantic);
+- returns an `AgentResult`: a short summary, findings backed by evidence, and its own data;
+- imports only from `agents_core`, never from another agent;
+- is a self-contained sub-repo: its folder has everything it needs and refers to nothing
+  outside itself, so it can be mirrored to its own GitHub repository.
 
-Key principles:
-- **Shared Foundation:** All agents import solely from `agents_core`.
-- **Strict Typing:** Input and Output models are Pydantic schemas. Loose dictionaries across agent boundaries are disallowed.
-- **Async Execution:** The main entrypoint `async def run(self, input, ctx: RunContext)` is non-blocking.
-- **Verifiable Evidence:** Findings must link to structured `Evidence` objects (`file`, `commit`, `config`, or `metric`).
-- **Entry-Point Discovery:** Agents register via Python entry points in `pyproject.toml` and are discovered dynamically without modifying the CLI or API.
+## 2. Create it with the scaffolder
 
----
+Never copy another agent by hand. Run:
 
-## 2. Directory Layout
+```bash
+uv run python scripts/new_agent.py license-checker \
+    --name "License Checker" \
+    --description "Finds incompatible licence combinations in a repository."
+uv sync --all-packages
+uv run pytest agents/license_checker
+```
 
-Create a new directory in `agents/<your_agent_name>`:
+The id must be kebab-case; the folder and Python package use the same name with
+underscores. The scaffolder creates a working stub agent and also wires it into the
+workspace (root `pyproject.toml` and the agents table in the main README).
+
+## 3. The folder layout
 
 ```text
-agents/my_agent/
-├── pyproject.toml
-├── README.md
-├── src/
-│   └── my_agent/
-│       ├── __init__.py
-│       ├── py.typed
-│       └── agent.py
+agents/license_checker/
+├── pyproject.toml        package metadata, entry point, [tool.agents-lib]
+├── README.md             required sections (see section 7)
+├── CHANGELOG.md          one entry per version
+├── LICENSE               copy of the root licence
+├── src/license_checker/
+│   ├── __init__.py       exports the agent, its models and __version__
+│   ├── py.typed
+│   ├── agent.py          the BaseAgent subclass
+│   └── models.py         input and output models
 └── tests/
     └── test_agent.py
 ```
 
----
+`scripts/check_agents.py` enforces this layout in CI.
 
-## 3. Package Configuration (`pyproject.toml`)
-
-Configure your package with `agents-lib-core` as a workspace dependency and register the agent entry point:
+### `[tool.agents-lib]`
 
 ```toml
-[project]
-name = "agents-lib-my-agent"
-version = "0.1.0"
-description = "My custom AI agent"
-readme = "README.md"
-requires-python = ">=3.11"
-dependencies = [
-    "agents-lib-core",
-]
-
-[project.entry-points."agents_lib.agents"]
-my-agent = "my_agent.agent:MyAgent"
-
-[tool.uv.sources]
-agents-lib-core = { workspace = true }
-
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
-[tool.hatch.build.targets.wheel]
-packages = ["src/my_agent"]
+[tool.agents-lib]
+id = "license-checker"
+stage = "planned"            # planned | experimental | stable
+# mirror = "Waddah0-0/agents-lib-license-checker"
 ```
 
----
+- `planned`: a scaffold or work in progress. `agent.py` and `models.py` are optional, and
+  the agent is never mirrored.
+- `experimental`: it works but may change. It can be mirrored.
+- `stable`: tested and documented.
 
-## 4. Implementing the Agent (`src/my_agent/agent.py`)
+Agent `pyproject.toml` files must not contain `[tool.uv.sources]`: the root `pyproject.toml`
+provides it for every package, and a per-agent copy would break the mirror repository.
 
-Subclass `BaseAgent` and implement the `run` method:
+## 4. Models and the agent class
 
 ```python
-from __future__ import annotations
+# models.py
+from agents_core import AgentInput
 from pydantic import BaseModel, Field
-from agents_core import (
-    BaseAgent,
-    AgentInput,
-    AgentResult,
-    RunContext,
-    Finding,
-    Evidence,
-)
 
 
-class MyAgentInput(AgentInput):
-    target: str = Field(description="Repository or file to analyze.")
-    threshold: float = Field(default=0.8, ge=0.0, le=1.0)
+class LicenseCheckerInput(AgentInput):
+    target: str = Field(description="GitHub URL or local path.")
+    paths: list[str] | None = Field(default=None, description="Restrict to these paths.")
 
 
-class MyAgentOutput(BaseModel):
-    score: float
-    items_inspected: int
+class LicenseCheckerOutput(BaseModel):
+    licences: dict[str, int]
+```
+
+```python
+# agent.py
+from agents_core import AgentResult, BaseAgent, Evidence, Finding, RunContext
+
+from license_checker.models import LicenseCheckerInput, LicenseCheckerOutput
 
 
-class MyAgent(BaseAgent):
-    id = "my-agent"
-    name = "My Custom Agent"
-    description = "Inspects targets and provides structured evidence."
+class LicenseCheckerAgent(BaseAgent):
+    id = "license-checker"
+    name = "License Checker"
+    description = "Finds incompatible licence combinations in a repository."
     version = "0.1.0"
-    InputModel = MyAgentInput
-    OutputModel = MyAgentOutput
+    InputModel = LicenseCheckerInput
+    OutputModel = LicenseCheckerOutput
+    primary_input = "target"  # what `agents run license-checker <value>` fills
 
-    async def run(self, input: MyAgentInput, ctx: RunContext) -> AgentResult:
-        # 1. Emit progress updates
-        ctx.report_progress("scan", "Scanning files...", fraction=0.2)
-
-        # 2. Check cooperative cancellation token
-        ctx.check_cancelled()
-
-        # 3. Optional: interact with LLM via RunContext
-        if ctx.llm:
-            response = await ctx.llm.complete("Analyze this summary")
-
-        # 4. Construct findings & evidence
-        findings = [
-            Finding(
-                title="Threshold Exceeded",
-                severity_or_score=0.9,
-                summary="Target exceeds configured threshold.",
-                evidence=[
-                    Evidence(
-                        kind="metric",
-                        location="target.py:42",
-                        detail="Score calculated at 0.90",
-                        weight=0.9,
-                    )
-                ],
-            )
-        ]
-
-        ctx.report_progress("done", "Complete", fraction=1.0)
-
-        # 5. Return validated AgentResult
+    async def run(self, input: LicenseCheckerInput, ctx: RunContext) -> AgentResult:
+        async with await ctx.load_workspace(input.target, paths=input.paths) as ws:
+            counts: dict[str, int] = {}
+            for i, file in enumerate(ws.files):
+                ctx.check_cancelled()
+                ctx.report_progress("scan", file.path, i / max(len(ws.files), 1))
+                ...  # the real work
         return self.make_result(
-            summary="Completed inspection successfully.",
-            output=MyAgentOutput(score=0.9, items_inspected=1),
-            findings=findings,
+            summary=f"Found {len(counts)} licences.",
+            output=LicenseCheckerOutput(licences=counts),
+            findings=[
+                Finding(
+                    title="GPL code in an MIT project",
+                    summary="...",
+                    evidence=[Evidence(kind="file", location="vendor/x.c:1-20", detail="...")],
+                )
+            ],
         )
 ```
 
----
+The services available on `ctx`:
 
-## 5. Testing Your Agent
+| Call | Use it to |
+|---|---|
+| `await ctx.load_workspace(target, paths=..., branch=...)` | Load a GitHub URL or local path safely. Use it with `async with`, so temporary clones are deleted. Its warnings are added to the result automatically. |
+| `ctx.report_progress(stage, message, fraction)` | Drive the CLI progress display and the API's live events. |
+| `ctx.check_cancelled()` | Stop promptly when the user cancels. Call it between expensive steps. |
+| `ctx.warn(message)` | Add a warning to the result, e.g. "3 files could not be parsed". |
+| `ctx.require_llm()` | Get this run's model session, or fail clearly if none is configured. |
 
-Write unit tests that mock LLM calls using `MockLLM` to guarantee fast, deterministic tests without network reliance:
+### Results and status
+
+Return results with `self.make_result(...)`, which validates `output` against
+`OutputModel`.
+
+- `status="ok"`: everything requested was done.
+- `status="partial"`: the result is usable, but some work was skipped (a budget or time limit
+  was hit, some files were unreadable). Add a warning for each skipped part.
+- Errors: just raise. `execute()` turns any exception into a `status="error"` result.
+
+### Using a model
+
+`ctx.require_llm()` returns a session that belongs to this run only. Its usage, its warnings
+(for example "prompt probably truncated") and its budget (`RunContext.max_cost_usd`) are
+separate from other runs, and they are copied into the result's metadata automatically.
 
 ```python
-import pytest
-from agents_core import run_agent, RunContext
+verdict = await ctx.require_llm().complete_structured(Verdict, prompt, system=RUBRIC)
+```
+
+`complete_structured` passes the schema to the server, so local models are constrained to
+valid JSON. The default model is local (Ollama, `qwen2.5:7b`), with a context window that
+may be as small as 8,192 tokens. Keep prompts well under it, and expect each call to take
+seconds.
+
+## 5. Tests
+
+Tests never use the network. Use `MockLLM` for models and build git repositories inside
+the test when you need history.
+
+```python
 from agents_core.llm import MockLLM
+from license_checker import LicenseCheckerAgent
 
 
-async def test_my_agent_runs() -> None:
-    llm = MockLLM(["Simulated answer"])
-    result = await run_agent(
-        "my-agent",
-        {"target": "dummy/path", "threshold": 0.5},
-        llm=llm,
-    )
+async def test_reports_licences(tmp_path) -> None:
+    (tmp_path / "LICENSE").write_text("MIT License ...", encoding="utf-8")
+    result = await LicenseCheckerAgent(llm=MockLLM(["{}"])).execute({"target": str(tmp_path)})
     assert result.status == "ok"
-    assert result.data["score"] == 0.9
 ```
 
----
+Test fixtures live in the agent's `tests/` folder. Third-party code is never copied in.
 
-## 6. Running Your Agent
+## 6. Versions and the changelog
 
-### From Python:
-```python
-import asyncio
-from agents_core import run_agent
+The version appears in three places and they must match: `pyproject.toml`,
+`__version__` in `__init__.py`, and the class's `version`. Every version has a
+`## [x.y.z]` entry in `CHANGELOG.md`.
 
+## 7. The README
 
-async def main():
-    result = await run_agent("my-agent", {"target": "src/"})
-    print(result.summary)
+Every agent README has these sections, in this order:
 
+1. **What it does**: the problem it solves and for whom.
+2. **How it works**: the steps, in plain words.
+3. **Input**: a table of fields; mark the primary input.
+4. **Output**: what `data` contains and which findings it reports.
+5. **Limits**: what it cannot do and when not to trust it.
+6. **Usage**: a command or a short Python example.
+7. **Development**: where it lives in the monorepo and how to run its tests.
 
-asyncio.run(main())
-```
+Links must be absolute (`https://github.com/...`) or stay inside the agent folder. Links
+like `../../docs` break in the mirror repository. Add a row for the agent to the agents
+table in the main README; the scaffolder does this for you.
 
-### From CLI:
+## 8. Checks
+
+Before committing, run everything CI runs:
+
 ```bash
-uv run agents run my-agent src/ --format markdown
+uv run ruff check .
+uv run ruff format --check .
+uv run python scripts/typecheck.py
+uv run python scripts/check_agents.py
+uv run pytest
 ```
+
+## 9. Publishing as its own repository
+
+Once the agent does real work, set `stage = "experimental"` and add the `mirror` key. After
+CI passes on `main`, the mirror workflow copies the agent folder, with its own history, to
+`<owner>/agents-lib-<id>`. The mirror is read-only; all changes happen in this repository.
+The mirror repository must exist and the `MIRROR_TOKEN` secret must give access to it
+before the first mirror.
