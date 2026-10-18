@@ -190,7 +190,7 @@ Run these before you commit. CI runs the same checks on Python 3.11 and 3.12.
 ```bash
 uv run ruff check .          # lint
 uv run ruff format --check . # formatting
-uv run mypy                  # strict type checking
+uv run python scripts/typecheck.py  # strict type checking, per package
 uv run pytest                # tests; no network access needed
 ```
 

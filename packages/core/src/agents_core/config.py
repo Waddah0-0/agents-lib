@@ -1,4 +1,10 @@
-"""Environment-driven settings (reads ``.env`` if present). Secrets never have defaults."""
+"""Environment-driven settings (reads ``.env`` if present). Secrets never have defaults.
+
+``AGENTS_LIB_ENV_FILE`` chooses the env file (default ``.env`` in the current directory);
+set it to an empty string to read environment variables only, as the test suite does.
+"""
+
+import os
 
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -22,6 +28,10 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
 
 
+ENV_FILE_VAR = "AGENTS_LIB_ENV_FILE"
+
+
 def get_settings() -> Settings:
-    """Load settings fresh from the environment."""
-    return Settings()
+    """Load settings fresh from the environment (and the env file, if any)."""
+    env_file = os.environ.get(ENV_FILE_VAR, ".env")
+    return Settings(_env_file=env_file or None)  # type: ignore[call-arg]

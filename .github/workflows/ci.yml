@@ -38,7 +38,7 @@ jobs:
         run: uv run ruff format --check .
 
       - name: Type check with Mypy
-        run: uv run mypy .
+        run: uv run python scripts/typecheck.py
 
       - name: Run tests with Pytest
         run: uv run pytest
