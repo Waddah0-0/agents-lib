@@ -86,6 +86,7 @@ class LocalLoader(Loader):
         if root.is_file():
             scopes = [root.name]
             root = root.parent
+        history_scopes = [s for s in scopes if s] if scopes else None
 
         files: list[FileInfo] = []
         skipped: list[SkippedFile] = []
@@ -158,5 +159,5 @@ class LocalLoader(Loader):
             source=source or str(Path(target).expanduser().resolve()),
             files=files,
             skipped=skipped,
-            git=detect_git(root),
+            git=detect_git(root, history_scopes),
         )

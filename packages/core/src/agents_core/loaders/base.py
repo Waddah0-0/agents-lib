@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import os
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Sequence
 from datetime import datetime
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from types import TracebackType
 
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
@@ -52,19 +53,56 @@ class GitCommit(BaseModel):
 
 
 class GitInfo(BaseModel):
-    """Access to a git repository's history."""
+    """Access to a git repository's history, limited to the workspace being analysed.
+
+    ``root`` is the repository's top level. ``prefix`` is the workspace root relative to it
+    (empty when they are the same). ``pathspecs`` restrict history to the analysed files; an
+    empty list means the whole repository.
+
+    Every query here uses name-only history. In blobless clones, options such as
+    ``--numstat``, ``--stat`` or ``-p`` would download every historical blob.
+    """
 
     root: Path
     head: str | None = None
     branch: str | None = None
+    prefix: str = ""
+    pathspecs: list[str] = Field(default_factory=list)
 
     async def commits(self, max_count: int | None = None) -> list[GitCommit]:
-        """Return commits reachable from HEAD, newest first."""
+        """Commits reachable from HEAD that touch the analysed files, newest first."""
         from agents_core.loaders.git import read_commits
 
         if self.head is None:
             return []
-        return await read_commits(self.root, max_count=max_count)
+        return await read_commits(self.root, max_count=max_count, pathspecs=self.pathspecs)
+
+    async def changed_files(self) -> dict[str, list[str]]:
+        """Map of commit SHA to the workspace-relative files it changed (merges excluded)."""
+        from agents_core.loaders.git import read_changed_files
+
+        if self.head is None:
+            return {}
+        raw = await read_changed_files(self.root, pathspecs=self.pathspecs)
+        result: dict[str, list[str]] = {}
+        for sha, paths in raw:
+            result[sha] = [rel for p in paths if (rel := self.to_workspace_path(p)) is not None]
+        return result
+
+    async def file_history(self) -> dict[str, list[str]]:
+        """Map of workspace-relative path to SHAs of commits that changed it, newest first."""
+        history: dict[str, list[str]] = {}
+        for sha, paths in (await self.changed_files()).items():
+            for path in paths:
+                history.setdefault(path, []).append(sha)
+        return history
+
+    def to_workspace_path(self, repo_path: str) -> str | None:
+        """Convert a repository-relative path to a workspace-relative one (None if outside)."""
+        if not self.prefix:
+            return repo_path
+        lead = self.prefix + "/"
+        return repo_path[len(lead) :] if repo_path.startswith(lead) else None
 
 
 class LoaderLimits(BaseModel):
@@ -108,6 +146,16 @@ class Workspace(BaseModel):
         with self.abs_path(file).open("rb") as fh:
             data = fh.read() if max_bytes is None else fh.read(max_bytes)
         return data.decode("utf-8", errors="replace")
+
+    def exists(self, rel_path: str) -> bool:
+        """Whether ``rel_path`` exists under the root, even inside filtered-out directories.
+
+        Symlinks are not followed, and paths that try to leave the root return ``False``.
+        """
+        rel = PurePosixPath(rel_path.replace("\\", "/"))
+        if rel.is_absolute() or ".." in rel.parts:
+            return False
+        return os.path.lexists(self.root / rel)
 
     def get_file(self, path: str) -> FileInfo | None:
         return next((f for f in self.files if f.path == path), None)
