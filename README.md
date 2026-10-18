@@ -124,7 +124,7 @@ Click an agent's name for what it does, how to use it, and its limits.
 
 | Agent | What it does | State |
 |---|---|---|
-| [AI Code Detector](agents/ai_code_detector/README.md) | Estimates how likely a codebase was written with AI assistance, and shows the evidence. | In progress |
+| [AI Code Detector](agents/ai_code_detector/README.md) | Estimates how likely a codebase was written with AI assistance, and shows the evidence. | Experimental |
 | [Echo](agents/echo/README.md) | Echoes its input back. A reference agent for testing and for copying when you write a new one. | Ready |
 
 ## Status
@@ -137,8 +137,8 @@ The project is built in phases, each one usable before the next begins.
 | 1 | Core: contract, models, registry, loaders, LLM clients, reporting | Done |
 | 1.5 | Core fixes (per-run LLM budgets, git history scoped to the target, safer clones) and the agent sub-repo standard | Done |
 | 2 | Command-line tool (`agents list`, `agents info`, `agents run`) | Done |
-| 3 | AI Code Detector with heuristic signals, plus the evaluation harness that measures it | Next |
-| 4 | LLM judge, larger evaluation dataset, calibrated scoring | Planned |
+| 3 | AI Code Detector with heuristic signals, plus the evaluation harness that measures it | Done |
+| 4 | LLM judge, larger evaluation dataset, calibrated scoring | Next |
 | 5 | HTTP API with background runs and live progress | Planned |
 | 6–7 | Web UI: a generic one for every agent, plus a custom view for the detector | Planned |
 | 8 | Hardening and the first PyPI release | Planned |
