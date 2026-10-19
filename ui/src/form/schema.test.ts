@@ -96,6 +96,15 @@ describe("buildPayload", () => {
   });
 });
 
+describe("cliCommand with a model for the run", () => {
+  it("adds the CLI's --provider and --model flags", () => {
+    const fields = fieldsFromSchema({ properties: { message: { type: "string" } } }, "message");
+    expect(cliCommand("echo", fields, { message: "hi" }, { provider: "anthropic", model: "claude-x" })).toBe(
+      "margin run echo hi --provider anthropic --model claude-x",
+    );
+  });
+});
+
 describe("cliCommand", () => {
   it("matches the CLI's positional and --set syntax", () => {
     const fields = fieldsFromSchema(detector, "target");

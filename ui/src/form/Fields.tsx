@@ -1,4 +1,4 @@
-import { type KeyboardEvent, useId, useState } from "react";
+import { type KeyboardEvent, type ReactNode, useId, useState } from "react";
 import { Icon } from "../components/Icon";
 import styles from "./Fields.module.css";
 import type { Field, FormValue } from "./schema";
@@ -259,4 +259,59 @@ export function FieldInput(props: FieldProps) {
     default:
       return <TextField {...props} />;
   }
+}
+
+/** A labelled text field for hand-built forms (settings), in the same style as the generated ones. */
+export function PlainTextField({
+  label,
+  value,
+  onChange,
+  type = "text",
+  placeholder,
+  support,
+  error,
+  list,
+  disabled,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  type?: "text" | "password" | "url" | "number";
+  placeholder?: string;
+  support?: ReactNode;
+  error?: string;
+  list?: string;
+  disabled?: boolean;
+}) {
+  const id = useId();
+  return (
+    <div className={styles.group}>
+      <label
+        className={styles.outlined}
+        data-error={Boolean(error)}
+        data-filled={placeholder ? true : undefined}
+      >
+        <input
+          className={styles.input}
+          type={type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder ?? " "}
+          aria-invalid={Boolean(error)}
+          aria-describedby={`${id}-support`}
+          list={list}
+          disabled={disabled}
+          spellCheck={false}
+          autoComplete="off"
+        />
+        <span className={styles.floating}>{label}</span>
+      </label>
+      {(error || support) && (
+        <p id={`${id}-support`} className={styles.support} data-error={Boolean(error)}>
+          {error && <Icon name="error" size={16} />}
+          {error ?? support}
+        </p>
+      )}
+    </div>
+  );
 }

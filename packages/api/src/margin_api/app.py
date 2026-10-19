@@ -6,10 +6,11 @@ import json
 from collections.abc import AsyncIterator, Awaitable, Callable, MutableMapping
 from contextlib import asynccontextmanager
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 from margin_core import (
     AgentInfo,
@@ -22,13 +23,18 @@ from margin_core import (
     ProgressEvent,
     default_registry,
 )
+from margin_core.config import get_settings
 from margin_core.llm import LLMClient, create_llm
+from margin_core.logging import get_logger
 from pydantic import BaseModel, Field
 from sse_starlette.sse import EventSourceResponse
 
 from margin_api import __version__
 from margin_api.jobs import Run, RunManager, RunStatus
+from margin_api.llm_settings import router as llm_settings_router
 from margin_api.settings import ApiSettings, load_settings
+
+logger = get_logger(__name__)
 
 Scope = MutableMapping[str, Any]
 Message = MutableMapping[str, Any]
@@ -50,6 +56,11 @@ class RunCreated(BaseModel):
     links: dict[str, str]
 
 
+class RunModel(BaseModel):
+    provider: str
+    model: str | None
+
+
 class RunView(BaseModel):
     run_id: str
     agent_id: str
@@ -60,6 +71,7 @@ class RunView(BaseModel):
     started_at: datetime | None
     finished_at: datetime | None
     result: AgentResult | None = Field(description="Present once the run is done.")
+    llm: RunModel | None = Field(default=None, description="The model this run uses, if any.")
 
 
 class _BodyLimit:
@@ -114,19 +126,23 @@ class _BodyLimit:
         await send({"type": "http.response.body", "body": body})
 
 
-def _default_llm() -> LLMClient | None:
-    return create_llm()
+LLMFactory = Callable[[str | None, str | None], LLMClient | None]
+
+
+def _default_llm(provider: str | None, model: str | None) -> LLMClient | None:
+    """A client built from the settings as they are now, so changes apply to the next run."""
+    return create_llm(provider, model)
 
 
 def create_app(
     *,
     registry: AgentRegistry | None = None,
     settings: ApiSettings | None = None,
-    llm_factory: Callable[[], LLMClient | None] | None = _default_llm,
+    llm_factory: LLMFactory | None = _default_llm,
 ) -> FastAPI:
     settings = settings or load_settings()
     registry = registry or default_registry()
-    manager = RunManager(registry, settings, llm_factory)
+    manager = RunManager(registry, settings)
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
@@ -149,10 +165,14 @@ def create_app(
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins,
-        allow_methods=["GET", "POST", "DELETE"],
+        allow_methods=["GET", "POST", "PUT", "DELETE"],
         allow_headers=["Content-Type", "Last-Event-ID"],
     )
     app.add_middleware(_BodyLimit, limit=settings.max_body_bytes)
+    # Only answer requests addressed to this machine by name. Without this, a web page could
+    # use DNS rebinding to reach the API through a domain of its own and read local results.
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.allowed_hosts)
+    app.include_router(llm_settings_router)
 
     def agent_class(agent_id: str) -> type[BaseAgent]:
         try:
@@ -169,11 +189,13 @@ def create_app(
         return run
 
     def view(run: Run) -> RunView:
+        llm = RunModel(provider=run.llm_provider, model=run.llm_model) if run.llm_provider else None
         return RunView(
             run_id=run.id, agent_id=run.agent_id, status=run.status,
             queue_position=manager.queue_position(run), progress=run.progress,
             created_at=run.created_at, started_at=run.started_at,
             finished_at=run.finished_at, result=run.result,
+            llm=llm,
         )  # fmt: skip
 
     @app.get("/health", tags=["meta"])
@@ -195,13 +217,32 @@ def create_app(
         tags=["runs"],
         responses={422: {"description": "The input does not match the agent's input schema"}},
     )
-    async def start_run(agent_id: str, body: dict[str, Any]) -> RunCreated:
+    async def start_run(
+        agent_id: str,
+        body: dict[str, Any],
+        provider: Literal["local", "anthropic", "openai", "mock"] | None = Query(
+            default=None, description="Model provider for this run (default: from settings)."
+        ),
+        model: str | None = Query(
+            default=None,
+            description="Model for this run (default: the provider's model in settings).",
+        ),
+    ) -> RunCreated:
         cls = agent_class(agent_id)
         try:
             parsed = cls.parse_input(body)
         except InputValidationError as exc:
             raise HTTPException(422, str(exc)) from exc
-        run = manager.submit(cls, parsed)
+        llm: LLMClient | None = None
+        resolved = (provider or get_settings().default_llm_provider).lower()
+        if cls.uses_llm and llm_factory is not None:
+            try:
+                llm = llm_factory(provider, model)
+            except Exception as exc:  # noqa: BLE001 - e.g. a missing API key
+                if provider or model:  # a choice made for this run must work, or say why
+                    raise HTTPException(422, f"Cannot use that model: {exc}") from exc
+                logger.warning("No model client for %s: %s", agent_id, exc)
+        run = manager.submit(cls, parsed, llm=llm, provider=resolved)
         return RunCreated(
             run_id=run.id,
             status=run.status,

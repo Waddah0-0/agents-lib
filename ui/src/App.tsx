@@ -8,6 +8,7 @@ import { AgentsPage } from "./pages/AgentsPage";
 import { HomePage } from "./pages/HomePage";
 import { RunPage } from "./pages/RunPage";
 import { RunsPage } from "./pages/RunsPage";
+import { SettingsPage } from "./pages/SettingsPage";
 
 function Layout() {
   return (
@@ -46,6 +47,7 @@ const router = createBrowserRouter([
       { path: "/agents/:agentId", element: <AgentPage /> },
       { path: "/runs", element: <RunsPage /> },
       { path: "/runs/:runId", element: <RunPage /> },
+      { path: "/settings", element: <SettingsPage /> },
       { path: "*", element: <NotFound /> },
     ],
   },

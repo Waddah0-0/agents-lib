@@ -7,6 +7,7 @@ import json
 import time
 from collections.abc import Iterator
 from importlib.metadata import EntryPoint
+from pathlib import Path
 from typing import Any, ClassVar
 
 import pytest
@@ -15,6 +16,7 @@ from fastapi.testclient import TestClient
 from margin_api.app import create_app
 from margin_api.settings import ApiSettings
 from margin_core import AgentInput, AgentRegistry, AgentResult, BaseAgent, RunContext
+from margin_core.llm import LLMClient, create_llm
 from margin_core.registry import ENTRY_POINT_GROUP
 from pydantic import BaseModel
 
@@ -66,10 +68,14 @@ def _registry() -> AgentRegistry:
     return registry
 
 
+def no_model(provider: str | None, model: str | None) -> None:
+    return None
+
+
 def make_client(**overrides: Any) -> TestClient:
     settings = ApiSettings(**{"cancel_grace_s": 0.3, "max_body_bytes": 2000, **overrides})
-    app = create_app(registry=_registry(), settings=settings, llm_factory=lambda: None)
-    return TestClient(app)
+    app = create_app(registry=_registry(), settings=settings, llm_factory=no_model)
+    return TestClient(app, base_url="http://127.0.0.1")
 
 
 @pytest.fixture
@@ -257,11 +263,98 @@ def test_finished_runs_expire() -> None:
 
 
 def test_api_works_when_no_model_can_be_created() -> None:
-    def broken_factory() -> None:
+    def broken_factory(provider: str | None, model: str | None) -> None:
         raise RuntimeError("no API key")
 
     settings = ApiSettings()
     app = create_app(registry=_registry(), settings=settings, llm_factory=broken_factory)
-    with TestClient(app) as client:
+    with TestClient(app, base_url="http://127.0.0.1") as client:
         run_id = start(client, "echo", {"message": "hi"})
         assert wait_for(client, run_id, {"done"})["result"]["status"] == "ok"
+
+
+# ---- model settings, per-run models, host check --------------------------------------
+
+
+def factory(provider: str | None, model: str | None) -> LLMClient | None:
+    return create_llm(provider, model)  # real factory: mock works, hosted ones need keys
+
+
+@pytest.fixture
+def settings_client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
+    monkeypatch.setenv("MARGIN_CONFIG_FILE", str(tmp_path / "settings.json"))
+    registry = AgentRegistry([])
+    registry.register(Gpu)
+    app = create_app(registry=registry, settings=ApiSettings(), llm_factory=factory)
+    with TestClient(app, base_url="http://127.0.0.1") as c:
+        yield c
+
+
+def test_requests_for_other_hosts_are_refused(settings_client: TestClient) -> None:
+    assert settings_client.get("/health").status_code == 200
+    assert settings_client.get("/health", headers={"host": "evil.example"}).status_code == 400
+
+
+def test_settings_show_sources_and_never_the_keys(settings_client: TestClient) -> None:
+    view = settings_client.get("/settings/llm").json()
+    assert view["provider"] == "local" and view["provider_source"] == "default"
+    assert view["saving_enabled"]
+    assert {p["id"] for p in view["providers"]} == {"local", "anthropic", "openai"}
+
+    saved = settings_client.put("/settings/llm", json={
+        "provider": "anthropic",
+        "keys": {"anthropic": "sk-ant-secret-1234"},
+        "models": {"anthropic": "claude-test"},
+    }).json()  # fmt: skip
+    anthropic = next(p for p in saved["providers"] if p["id"] == "anthropic")
+    assert saved["provider"] == "anthropic" and saved["provider_source"] == "saved"
+    assert anthropic["key_set"] and anthropic["key_hint"] == "…1234"
+    assert anthropic["model"] == "claude-test"
+    assert (
+        "sk-ant-secret" not in settings_client.get("/settings/llm").text
+    )  # the key never comes back
+
+    cleared = settings_client.put("/settings/llm", json={"keys": {"anthropic": ""}}).json()
+    assert not next(p for p in cleared["providers"] if p["id"] == "anthropic")["key_set"]
+
+
+def test_settings_reject_bad_input(settings_client: TestClient) -> None:
+    assert (
+        settings_client.put("/settings/llm", json={"local_base_url": "ftp://x"}).status_code == 422
+    )
+    assert settings_client.put("/settings/llm", json={"provider": "nope"}).status_code == 422
+    assert settings_client.put("/settings/llm", json={"github_token": "x"}).status_code == 422
+
+
+def test_saving_turned_off_is_reported(
+    settings_client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("MARGIN_CONFIG_FILE", "")
+    assert settings_client.put("/settings/llm", json={"provider": "openai"}).status_code == 409
+
+
+def test_a_run_can_choose_its_model(settings_client: TestClient) -> None:
+    created = settings_client.post("/agents/gpu/runs?provider=mock&model=m1", json={"steps": 1})
+    assert created.status_code == 202
+    run = wait_for(settings_client, created.json()["run_id"], {"done"})
+    assert run["llm"] == {"provider": "mock", "model": "m1"}
+
+    # an explicit choice that cannot work is refused up front, with the reason
+    refused = settings_client.post("/agents/gpu/runs?provider=anthropic", json={"steps": 1})
+    assert refused.status_code == 422 and "API key" in refused.json()["detail"]
+
+
+def test_hosted_runs_do_not_wait_for_the_local_gpu(settings_client: TestClient) -> None:
+    local = start(settings_client, "gpu", {"steps": 300})  # holds the single local slot
+    hosted = settings_client.post("/agents/gpu/runs?provider=mock", json={"steps": 1}).json()
+    assert wait_for(settings_client, hosted["run_id"], {"done"})["status"] == "done"
+    assert settings_client.get(f"/runs/{local}").json()["status"] == "running"  # still going
+    settings_client.delete(f"/runs/{local}")
+
+
+def test_settings_changes_apply_to_the_next_run(settings_client: TestClient) -> None:
+    settings_client.put("/settings/llm", json={"provider": "openai"})
+    # no OpenAI key: the default provider cannot be used, so the run goes ahead without
+    # a model (the agent reports that) rather than failing the request
+    run_id = start(settings_client, "gpu", {"steps": 1})
+    assert wait_for(settings_client, run_id, {"done"})["llm"]["provider"] == "openai"

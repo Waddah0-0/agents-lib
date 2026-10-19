@@ -125,7 +125,11 @@ Local models have limits you should know about. They are slower, especially on t
 call while the model loads. They have smaller context windows; for long inputs, start Ollama
 with a larger one, for example `OLLAMA_CONTEXT_LENGTH=8192`. And their judgment is weaker
 than that of the large hosted models. Anthropic and OpenAI remain available for when that
-matters: set `DEFAULT_LLM_PROVIDER` to `anthropic` or `openai` and add the matching API key.
+matters: pick them on the web UI's Settings page (keys stay on your computer), or set
+`DEFAULT_LLM_PROVIDER` to `anthropic` or `openai` with the matching API key. A single run can
+use a different model too: choose it on the run's form, or pass `--provider` and `--model` to
+`margin run`. With a hosted provider, agents send their prompts to that company; for the AI Code
+Detector that includes samples of the code it reads.
 
 ## Agents
 

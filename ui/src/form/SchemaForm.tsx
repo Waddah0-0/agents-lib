@@ -1,10 +1,11 @@
-import { type FormEvent, useMemo, useState } from "react";
+import { type FormEvent, useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { type AgentInfo, ApiError, api, call } from "../api/client";
 import { Button } from "../components/Button";
 import { CopyButton } from "../components/CopyButton";
 import { Icon } from "../components/Icon";
 import { FieldInput } from "./Fields";
+import { ModelChoice, type RunModel } from "./ModelChoice";
 import styles from "./SchemaForm.module.css";
 import {
   buildPayload,
@@ -15,9 +16,17 @@ import {
   initialValues,
 } from "./schema";
 
-export async function startRun(agentId: string, payload: Record<string, unknown>): Promise<string> {
+export async function startRun(
+  agentId: string,
+  payload: Record<string, unknown>,
+  llm?: RunModel | null,
+): Promise<string> {
+  const query = llm ? { provider: llm.provider, model: llm.model || undefined } : undefined;
   const created = await call(
-    api.POST("/agents/{agent_id}/runs", { params: { path: { agent_id: agentId } }, body: payload }),
+    api.POST("/agents/{agent_id}/runs", {
+      params: { path: { agent_id: agentId }, query },
+      body: payload,
+    }),
   );
   return created.run_id;
 }
@@ -30,12 +39,15 @@ export function SchemaForm({ agent, initial }: { agent: AgentInfo; initial?: For
   const [touched, setTouched] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string>();
+  const [runModel, setRunModel] = useState<RunModel | null>(null);
+  const chooseModel = useCallback((m: RunModel | null) => setRunModel(m), []);
 
   const { payload, errors } = buildPayload(fields, values);
   const shownErrors = touched ? errors : {};
   const main = fields.filter((f) => f.primary || f.required);
   const extra = fields.filter((f) => !f.primary && !f.required);
   const changedExtra = extra.filter((f) => f.name in payload).length;
+  const command = cliCommand(agent.id, fields, payload, runModel);
 
   const set = (name: string) => (value: FormValue) => {
     setValues((v) => ({ ...v, [name]: value }));
@@ -49,7 +61,7 @@ export function SchemaForm({ agent, initial }: { agent: AgentInfo; initial?: For
     setSubmitting(true);
     setServerError(undefined);
     try {
-      const runId = await startRun(agent.id, payload);
+      const runId = await startRun(agent.id, payload, runModel);
       navigate(`/runs/${runId}`, { viewTransition: true });
     } catch (err) {
       setServerError(err instanceof ApiError ? err.message : (err as Error).message);
@@ -102,6 +114,8 @@ export function SchemaForm({ agent, initial }: { agent: AgentInfo; initial?: For
         </details>
       )}
 
+      {agent.uses_llm && <ModelChoice value={runModel} onChange={chooseModel} />}
+
       {serverError && (
         <div className={styles.error} role="alert">
           <Icon name="error" />
@@ -121,9 +135,9 @@ export function SchemaForm({ agent, initial }: { agent: AgentInfo; initial?: For
       <div className={styles.cli}>
         <div className={styles.cliHead}>
           <span className="label-m muted">Same run from the command line</span>
-          <CopyButton text={cliCommand(agent.id, fields, payload)} label="Copy command" />
+          <CopyButton text={command} label="Copy command" />
         </div>
-        <code className={styles.cliCode}>{cliCommand(agent.id, fields, payload)}</code>
+        <code className={styles.cliCode}>{command}</code>
       </div>
     </form>
   );

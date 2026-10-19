@@ -10,6 +10,7 @@ const ITEMS: { to: string; icon: IconName; label: string; end: boolean }[] = [
   { to: "/", icon: "home", label: "Home", end: true },
   { to: "/agents", icon: "widgets", label: "Agents", end: false },
   { to: "/runs", icon: "history", label: "Runs", end: false },
+  { to: "/settings", icon: "settings", label: "Settings", end: false },
 ];
 
 const THEME_ICON = { system: "systemTheme", light: "lightMode", dark: "darkMode" } as const;

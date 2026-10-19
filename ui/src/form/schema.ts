@@ -240,7 +240,12 @@ function shellQuote(text: string): string {
 }
 
 /** The same run as an `margin run` command line. */
-export function cliCommand(agentId: string, fields: Field[], payload: Record<string, unknown>): string {
+export function cliCommand(
+  agentId: string,
+  fields: Field[],
+  payload: Record<string, unknown>,
+  llm?: { provider: string; model: string } | null,
+): string {
   const parts = ["margin", "run", agentId];
   const primary = fields.find((f) => f.primary);
   if (primary && typeof payload[primary.name] === "string") {
@@ -252,6 +257,10 @@ export function cliCommand(agentId: string, fields: Field[], payload: Record<str
     const value = payload[field.name];
     const text = typeof value === "string" && field.kind === "text" ? value : JSON.stringify(value);
     parts.push("-s", shellQuote(`${field.name}=${text}`));
+  }
+  if (llm) {
+    parts.push("--provider", llm.provider);
+    if (llm.model) parts.push("--model", shellQuote(llm.model));
   }
   return parts.join(" ");
 }

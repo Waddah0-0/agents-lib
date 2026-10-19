@@ -37,6 +37,7 @@ VITE_API_URL=http://127.0.0.1:9000 npm run dev
 | Agent | The input form, generated from the agent's JSON schema: the main input first, other fields under "More options". It also shows the same run as a `margin run` command. An agent can add its own intro beside the form (`agentIntroFor` in `src/results/registry.ts`); the AI Code Detector's explains how it reads code. |
 | Run | Live progress over server-sent events: stage, percentage, queue position. You can cancel from here. When the run finishes, the result appears below. |
 | Runs | Recent runs. They live in the API's memory for an hour. |
+| Settings | The model agents use: a local server (Ollama, LM Studio, llama.cpp, vLLM), Anthropic or OpenAI, picked from the provider's live model list, with keys and a connection test. A run can also use a different model, chosen on its form. |
 
 Results use a generic viewer that works for any agent: the summary, findings with expandable
 evidence, warnings, run details, the raw JSON, and export to JSON or Markdown. An agent can

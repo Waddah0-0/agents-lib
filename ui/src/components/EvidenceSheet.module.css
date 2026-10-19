@@ -2,7 +2,6 @@
   position: relative;
   width: 100%;
   max-width: 380px;
-  aspect-ratio: 4 / 4.6;
   margin: 0 auto;
 }
 
@@ -116,4 +115,10 @@
 
 @keyframes note-in {
   from { opacity: 0; transform: translateX(-8px); }
+}
+
+/* the front sheet sets the height (its lines decide it); the others are laid behind it */
+.sheet.front {
+  position: relative;
+  inset: auto;
 }

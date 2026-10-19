@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import { api, call, isFinished, type ProgressEvent, type RunView } from "../api/client";
 import { useAgents, useLiveRun } from "../api/hooks";
+import { PROVIDER_NAME, type ProviderId } from "../api/settings";
 import { AgentAvatar } from "../components/AgentAvatar";
 import { Button, LinkButton } from "../components/Button";
 import { CopyButton } from "../components/CopyButton";
@@ -133,6 +134,13 @@ export function RunPage() {
               <span>{name}</span>
             </Link>
             <StatusChip run={run} />
+            {run.llm && (
+              <span className={styles.modelChip} title="The model this run uses">
+                <Icon name={run.llm.provider === "local" ? "device" : "cloud"} size={14} />
+                {PROVIDER_NAME[run.llm.provider as ProviderId] ?? run.llm.provider}
+                {run.llm.model && <code>{run.llm.model}</code>}
+              </span>
+            )}
             <span className={styles.runId}>
               <span className="mono">run {shortId(run.run_id)}</span>
               <CopyButton text={run.run_id} label="Copy run id" />

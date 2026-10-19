@@ -12,7 +12,7 @@ export function DetectorIntro() {
   return (
     <section className={styles.intro} aria-label="How the AI Code Detector works">
       <div className={styles.art}>
-        <EvidenceSheet />
+        <EvidenceSheet rows={13} />
       </div>
       <h2 className={styles.title}>
         How it <span className="marker">reads code</span>

@@ -15,6 +15,7 @@ environment variables (or `.env`) prefixed with `MARGIN_API_`:
 | Setting | Default | Meaning |
 |---|---|---|
 | `MARGIN_API_HOST` / `MARGIN_API_PORT` | `127.0.0.1` / `8000` | Where to listen. Change the host only if you mean to expose it. |
+| `MARGIN_API_ALLOWED_HOSTS` | `["127.0.0.1", "localhost"]` | Host names the API answers to. This blocks DNS-rebinding attacks from web pages; add your host name if you expose the API. |
 | `MARGIN_API_CORS_ORIGINS` | `["http://localhost:3000", "http://127.0.0.1:3000"]` | Web pages allowed to call it (JSON list). |
 | `MARGIN_API_LLM_CONCURRENCY` | `1` | Runs of agents that use a model, at once (one local GPU). |
 | `MARGIN_API_OTHER_CONCURRENCY` | `4` | Runs of other agents, at once. |
@@ -31,11 +32,15 @@ Model settings (`DEFAULT_LLM_PROVIDER`, `LOCAL_LLM_BASE_URL`, ...) are the same 
 | `GET /health` | Liveness check. |
 | `GET /agents` | Installed agents with their input and output JSON schemas, plus any that failed to load. |
 | `GET /agents/{id}` | One agent. |
-| `POST /agents/{id}/runs` | Start a run. The body is the agent's input as JSON. Answers `202` with the `run_id`. |
+| `POST /agents/{id}/runs` | Start a run. The body is the agent's input as JSON; `?provider=` and `?model=` choose the model for this run only. Answers `202` with the `run_id`. |
 | `GET /runs/{run_id}` | Status (`queued`, `running`, `done`, `cancelled`), queue position, latest progress and, when done, the result. |
 | `GET /runs/{run_id}/events` | Server-sent events: `status`, `progress`, then one final `result`. |
 | `DELETE /runs/{run_id}` | Cancel a run. |
 | `GET /runs` | Recent runs. |
+| `GET /settings/llm` | Model settings: the provider in use, each provider's model, whether a key is set (with its last four characters, never the key), and where each value comes from. |
+| `PUT /settings/llm` | Save model settings (provider, models, keys, local server address, spending limit). Applies from the next run. |
+| `GET /settings/llm/models?provider=` | The models the provider offers right now, asked live. |
+| `POST /settings/llm/test` | Send one tiny prompt and report whether, and how fast, the model answered. |
 
 ## Example with curl
 
@@ -56,8 +61,8 @@ curl -s -X DELETE http://127.0.0.1:8000/runs/342e1c...
 ## How runs behave
 
 - **Asynchronous.** Starting a run returns at once; the work happens in the background.
-- **Queues.** Agents that use a model (such as the AI Code Detector) share one queue, one run
-  at a time by default, because a local model has one GPU. Other margin run up to four at a
+- **Queues.** Runs on a local model share one queue, one run at a time by default, because a
+  local model has one GPU. Runs on a hosted model (Anthropic, OpenAI) do not wait for it. Other margin run up to four at a
   time. A queued run reports its position.
 - **Late subscribers miss nothing.** Each run keeps its last 200 events, and the event stream
   starts with that history. Reconnecting with the standard `Last-Event-ID` header resumes

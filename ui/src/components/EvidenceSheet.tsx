@@ -6,19 +6,19 @@
 import styles from "./EvidenceSheet.module.css";
 import { Minimap } from "./Minimap";
 
-export function EvidenceSheet() {
+export function EvidenceSheet({ rows = 20 }: { rows?: number }) {
   return (
     <figure className={styles.stack} aria-hidden="true">
       <div className={`${styles.sheet} ${styles.back2}`} />
       <div className={`${styles.sheet} ${styles.back1}`}>
-        <Minimap seed="tests/test_api.py" rows={20} />
+        <Minimap seed="tests/test_api.py" rows={rows} />
       </div>
       <div className={`${styles.sheet} ${styles.front}`}>
         <div className={styles.head}>
           <span className={styles.file}>src/report.py</span>
           <span className={styles.score}>0.71</span>
         </div>
-        <Minimap seed="src/report.py" rows={20} highlights={[3, 9]} className={styles.code} />
+        <Minimap seed="src/report.py" rows={rows} highlights={[3, 9]} className={styles.code} />
         <span className={`${styles.note} ${styles.noteFor}`}>
           <b>+0.42</b> comment restates the code
         </span>

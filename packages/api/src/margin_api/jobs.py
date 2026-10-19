@@ -13,7 +13,7 @@ import contextlib
 import time
 import uuid
 from collections import deque
-from collections.abc import AsyncIterator, Callable
+from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any, Literal
@@ -51,6 +51,9 @@ class Run:
     events: deque[RunEvent] = field(default_factory=deque)
     token: Any = None  # CancellationToken, set when created
     task: asyncio.Task[None] | None = None
+    llm: LLMClient | None = None  # the model client for this run, if the agent uses one
+    llm_provider: str | None = None
+    llm_model: str | None = None
     finished_monotonic: float | None = None
     _seq: int = 0
     _changed: asyncio.Event = field(default_factory=asyncio.Event)
@@ -80,22 +83,14 @@ class _Pool:
 
 
 class RunManager:
-    def __init__(
-        self,
-        registry: AgentRegistry,
-        settings: ApiSettings,
-        llm_factory: Callable[[], LLMClient | None] | None = None,
-    ) -> None:
+    def __init__(self, registry: AgentRegistry, settings: ApiSettings) -> None:
         self.registry = registry
         self.settings = settings
         self.runs: dict[str, Run] = {}
         self.pools = {
-            "llm": _Pool(settings.llm_concurrency),
-            "other": _Pool(settings.other_concurrency),
+            "llm": _Pool(settings.llm_concurrency),  # runs on the local model (one GPU)
+            "other": _Pool(settings.other_concurrency),  # everything else, hosted models too
         }
-        self._llm_factory = llm_factory
-        self._llm: LLMClient | None = None
-        self._llm_ready = False
         self._sweeper: asyncio.Task[None] | None = None
 
     # ---- lifecycle ------------------------------------------------------------------
@@ -110,24 +105,26 @@ class RunManager:
             if run.task is not None and not run.task.done():
                 run.task.cancel()
 
-    def _client(self) -> LLMClient | None:
-        """One shared client; every run gets its own session from it (usage, budget)."""
-        if not self._llm_ready:
-            self._llm_ready = True
-            if self._llm_factory is not None:
-                try:
-                    self._llm = self._llm_factory()
-                except Exception:  # noqa: BLE001 - a missing key must not break the API
-                    logger.warning("No LLM client could be created", exc_info=True)
-        return self._llm
-
     # ---- runs -----------------------------------------------------------------------
 
-    def submit(self, agent_cls: type[BaseAgent], parsed: BaseModel) -> Run:
+    def submit(
+        self,
+        agent_cls: type[BaseAgent],
+        parsed: BaseModel,
+        *,
+        llm: LLMClient | None = None,
+        provider: str | None = None,
+    ) -> Run:
+        """Queue a run. ``llm`` is this run's model client (created from the current
+        settings, so a change in settings applies to the next run); ``provider`` decides the
+        queue: only runs on the local model wait for the single local GPU."""
         from margin_core import CancellationToken
 
-        pool = "llm" if agent_cls.uses_llm else "other"
+        pool = "llm" if agent_cls.uses_llm and provider == "local" else "other"
         run = Run(id=uuid.uuid4().hex, agent_id=agent_cls.id, pool=pool)
+        if agent_cls.uses_llm:
+            run.llm, run.llm_provider = llm, provider
+            run.llm_model = llm.model if llm is not None else None
         run.token = CancellationToken()
         run.events = deque(maxlen=self.settings.event_buffer)
         self.runs[run.id] = run
@@ -160,7 +157,7 @@ class RunManager:
                     run.progress = event
                     run.add_event("progress", event.model_dump(mode="json"))
 
-                agent = agent_cls(llm=self._client())
+                agent = agent_cls(llm=run.llm)
                 ctx = RunContext(progress=on_progress, cancel_token=run.token)
                 result = await agent.execute(parsed, ctx)
                 self._finish(run, result, cancelled=run.token.cancelled)

@@ -124,6 +124,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/settings/llm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Llm Settings */
+        get: operations["get_llm_settings_settings_llm_get"];
+        /** Update Llm Settings */
+        put: operations["update_llm_settings_settings_llm_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/settings/llm/models": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Models */
+        get: operations["get_models_settings_llm_models_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/settings/llm/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Test Connection */
+        post: operations["test_connection_settings_llm_test_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -219,6 +271,26 @@ export interface components {
             /** Warnings */
             warnings?: string[];
         };
+        /** ConnectionRequest */
+        ConnectionRequest: {
+            /** Model */
+            model?: string | null;
+            /** Provider */
+            provider?: ("local" | "anthropic" | "openai") | null;
+        };
+        /** ConnectionResult */
+        ConnectionResult: {
+            /** Latency Ms */
+            latency_ms: number | null;
+            /** Message */
+            message: string;
+            /** Model */
+            model: string;
+            /** Ok */
+            ok: boolean;
+            /** Provider */
+            provider: string;
+        };
         /**
          * Evidence
          * @description A single, checkable piece of evidence supporting a finding.
@@ -265,6 +337,68 @@ export interface components {
             detail?: components["schemas"]["ValidationError"][];
         };
         /**
+         * LLMSettingsUpdate
+         * @description Only the fields present change. For models and keys, an empty string removes the
+         *     saved value (the next source in line applies again).
+         */
+        LLMSettingsUpdate: {
+            /** Keys */
+            keys?: {
+                [key: string]: string;
+            } | null;
+            /** Local Base Url */
+            local_base_url?: string | null;
+            /** Max Cost Usd */
+            max_cost_usd?: number | null;
+            /** Models */
+            models?: {
+                [key: string]: string;
+            } | null;
+            /** Provider */
+            provider?: ("local" | "anthropic" | "openai") | null;
+        };
+        /** LLMSettingsView */
+        LLMSettingsView: {
+            /** Local Base Url */
+            local_base_url: string;
+            /**
+             * Local Base Url Source
+             * @enum {string}
+             */
+            local_base_url_source: "environment" | "saved" | "env_file" | "default";
+            /**
+             * Max Cost Usd
+             * @description Spending cap per run, for hosted providers.
+             */
+            max_cost_usd: number;
+            /**
+             * Provider
+             * @enum {string}
+             */
+            provider: "local" | "anthropic" | "openai";
+            /**
+             * Provider Source
+             * @enum {string}
+             */
+            provider_source: "environment" | "saved" | "env_file" | "default";
+            /** Providers */
+            providers: components["schemas"]["ProviderView"][];
+            /** Saving Enabled */
+            saving_enabled: boolean;
+            /** Settings File */
+            settings_file: string | null;
+        };
+        /** ModelList */
+        ModelList: {
+            /** Models */
+            models: string[];
+            /**
+             * Provider
+             * @enum {string}
+             */
+            provider: "local" | "anthropic" | "openai";
+        };
+        /**
          * ProgressEvent
          * @description A progress update emitted during a run (consumed by CLI/UI).
          */
@@ -283,6 +417,47 @@ export interface components {
              * Format: date-time
              */
             timestamp?: string;
+        };
+        /** ProviderView */
+        ProviderView: {
+            /** Default Model */
+            default_model: string;
+            /**
+             * Id
+             * @enum {string}
+             */
+            id: "local" | "anthropic" | "openai";
+            /**
+             * Key Hint
+             * @description Last four characters of the key, never the key.
+             */
+            key_hint: string | null;
+            /** Key Set */
+            key_set: boolean;
+            /**
+             * Key Source
+             * @enum {string}
+             */
+            key_source: "environment" | "saved" | "env_file" | "default";
+            /** Label */
+            label: string;
+            /**
+             * Model
+             * @description The model runs use with this provider.
+             */
+            model: string;
+            /**
+             * Model Source
+             * @enum {string}
+             */
+            model_source: "environment" | "saved" | "env_file" | "default";
+            /** Needs Key */
+            needs_key: boolean;
+            /**
+             * On Device
+             * @description False: prompts, such as samples of code, leave this machine.
+             */
+            on_device: boolean;
         };
         /** RunCreated */
         RunCreated: {
@@ -319,6 +494,13 @@ export interface components {
             started_at?: string | null;
             usage?: components["schemas"]["TokenUsage"];
         };
+        /** RunModel */
+        RunModel: {
+            /** Model */
+            model: string | null;
+            /** Provider */
+            provider: string;
+        };
         /** RunView */
         RunView: {
             /** Agent Id */
@@ -330,6 +512,8 @@ export interface components {
             created_at: string;
             /** Finished At */
             finished_at: string | null;
+            /** @description The model this run uses, if any. */
+            llm?: components["schemas"]["RunModel"] | null;
             progress: components["schemas"]["ProgressEvent"] | null;
             /**
              * Queue Position
@@ -449,7 +633,12 @@ export interface operations {
     };
     start_run_agents__agent_id__runs_post: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Model provider for this run (default: from settings). */
+                provider?: ("local" | "anthropic" | "openai" | "mock") | null;
+                /** @description Model for this run (default: the provider's model in settings). */
+                model?: string | null;
+            };
             header?: never;
             path: {
                 agent_id: string;
@@ -614,6 +803,123 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_llm_settings_settings_llm_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LLMSettingsView"];
+                };
+            };
+        };
+    };
+    update_llm_settings_settings_llm_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LLMSettingsUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LLMSettingsView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_models_settings_llm_models_get: {
+        parameters: {
+            query: {
+                provider: "local" | "anthropic" | "openai";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModelList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    test_connection_settings_llm_test_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConnectionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConnectionResult"];
+                };
             };
             /** @description Validation Error */
             422: {

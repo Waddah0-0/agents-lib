@@ -368,3 +368,8 @@ select.input {
 @keyframes chip-in {
   from { scale: 0.6; opacity: 0; }
 }
+
+/* a floated label leaves room for the placeholder, so show it */
+.outlined[data-filled="true"] .input::placeholder {
+  color: color-mix(in srgb, var(--on-surface-variant) 75%, transparent);
+}
