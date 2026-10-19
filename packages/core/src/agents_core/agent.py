@@ -132,6 +132,8 @@ class BaseAgent(ABC):
     InputModel: ClassVar[type[BaseModel]]
     OutputModel: ClassVar[type[BaseModel]]
     primary_input: ClassVar[str | None] = None
+    uses_llm: ClassVar[bool] = False
+    """Whether runs normally call a model (the API queues these separately: one GPU)."""
     """Input field filled by the CLI's positional argument (and shown first in forms)."""
 
     def __init__(self, llm: LLMClient | None = None, config: Mapping[str, Any] | None = None):
@@ -148,6 +150,7 @@ class BaseAgent(ABC):
             input_schema=cls.InputModel.model_json_schema(),
             output_schema=cls.OutputModel.model_json_schema(),
             primary_input=cls.primary_input,
+            uses_llm=cls.uses_llm,
         )
 
     @classmethod

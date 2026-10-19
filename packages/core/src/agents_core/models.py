@@ -127,3 +127,4 @@ class AgentInfo(_StrictModel):
     primary_input: str | None = Field(
         default=None, description="Input field filled by a positional CLI argument."
     )
+    uses_llm: bool = Field(default=False, description="Whether runs normally call a model.")
