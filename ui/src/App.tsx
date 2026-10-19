@@ -24,7 +24,7 @@ function Layout() {
 function NotFound() {
   return (
     <EmptyState
-      icon="explore_off"
+      icon="lost"
       title="Nothing here"
       action={
         <LinkButton variant="tonal" to="/" icon="home">

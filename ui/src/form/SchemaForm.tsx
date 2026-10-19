@@ -81,12 +81,12 @@ export function SchemaForm({ agent, initial }: { agent: AgentInfo; initial?: For
       {extra.length > 0 && (
         <details className={styles.more} open={changedExtra > 0 || undefined}>
           <summary className={styles.summary}>
-            <Icon name="tune" />
+            <Icon name="options" />
             <span>More options</span>
             <span className={styles.count}>
               {changedExtra ? `${changedExtra} changed` : `${extra.length}`}
             </span>
-            <Icon name="expand_more" className={styles.chevron} />
+            <Icon name="expand" className={styles.chevron} />
           </summary>
           <div className={styles.fields}>
             {extra.map((field) => (
@@ -110,12 +110,7 @@ export function SchemaForm({ agent, initial }: { agent: AgentInfo; initial?: For
       )}
 
       <div className={styles.actions}>
-        <Button
-          type="submit"
-          size="l"
-          icon={submitting ? "progress_activity" : "play_arrow"}
-          disabled={submitting}
-        >
+        <Button type="submit" size="l" icon={submitting ? "spinner" : "play"} disabled={submitting}>
           {submitting ? "Starting" : "Run"}
         </Button>
         <Button variant="text" onClick={reset} disabled={submitting}>

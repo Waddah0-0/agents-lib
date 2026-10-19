@@ -14,8 +14,12 @@
 }
 
 .chip[data-tone="active"] {
-  background: var(--primary-container);
-  color: var(--on-primary-container);
+  background: var(--secondary-container);
+  color: var(--on-secondary-container);
+}
+
+.chip[data-tone="active"] :global(.icon) {
+  color: var(--primary);
 }
 
 .chip[data-tone="ok"] {

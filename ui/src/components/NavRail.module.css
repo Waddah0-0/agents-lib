@@ -45,6 +45,7 @@
   place-items: center;
   width: 56px;
   height: 32px;
+  font-size: 22px;
   border-radius: var(--shape-full);
   isolation: isolate;
 }
@@ -58,13 +59,14 @@
   z-index: -1;
 }
 
+/* the active item is highlighted, as if with a marker: swiped in from the left */
 .indicator::before {
-  background: var(--secondary-container);
-  transform: scaleX(0.3);
-  opacity: 0;
-  transition:
-    transform var(--spring-fast-spatial-duration) var(--spring-fast-spatial),
-    opacity var(--dur-short3) var(--ease-standard);
+  inset: 3px 2px;
+  border-radius: 9px 14px 10px 16px;
+  background: var(--marker);
+  transform: skewX(-6deg) scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--spring-default-spatial-duration) var(--spring-default-spatial);
 }
 
 .indicator::after {
@@ -87,12 +89,11 @@
 }
 
 .item:global(.active) .indicator {
-  color: var(--on-secondary-container);
+  color: var(--on-surface);
 }
 
 .item:global(.active) .indicator::before {
-  transform: scaleX(1);
-  opacity: 1;
+  transform: skewX(-6deg) scaleX(1);
 }
 
 .label {

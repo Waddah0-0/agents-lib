@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import { api, call, isFinished, type ProgressEvent, type RunView } from "../api/client";
 import { useAgents, useLiveRun } from "../api/hooks";
-import { AgentShape } from "../components/AgentShape";
+import { AgentAvatar } from "../components/AgentAvatar";
 import { Button, LinkButton } from "../components/Button";
 import { CopyButton } from "../components/CopyButton";
 import { Icon } from "../components/Icon";
 import { PageLoading } from "../components/Loading";
+import { Minimap } from "../components/Minimap";
 import { EmptyState, ErrorState } from "../components/States";
 import { StatusChip } from "../components/StatusChip";
 import { WavyProgress } from "../components/WavyProgress";
@@ -78,7 +79,7 @@ export function RunPage() {
     return (
       <div className={styles.page}>
         <EmptyState
-          icon="hourglass_disabled"
+          icon="expired"
           title="This run is no longer here"
           action={
             <LinkButton variant="tonal" to="/runs" icon="history">
@@ -125,64 +126,74 @@ export function RunPage() {
   return (
     <div className={styles.page}>
       <section className={styles.runHero} data-live={live}>
-        <div className={styles.runTop}>
-          <Link to={`/agents/${run.agent_id}`} className={styles.runAgent} viewTransition>
-            <AgentShape id={run.agent_id} name={name} size={40} />
-            <span>{name}</span>
-          </Link>
-          <StatusChip run={run} />
-          <span className={styles.runId}>
-            <span className="mono">run {shortId(run.run_id)}</span>
-            <CopyButton text={run.run_id} label="Copy run id" />
-          </span>
-        </div>
-
-        <div className={styles.runMessage} aria-live="polite">
-          <h1 key={title}>{title}</h1>
-          {detail && <p className="body-l muted">{detail}</p>}
-        </div>
-
-        <div className={styles.progressRow}>
-          <WavyProgress
-            value={run.status === "cancelled" ? (run.progress?.fraction ?? 0) : fraction}
-            active={live}
-            label={`${name} progress`}
-          />
-          {fraction !== null && <span className={styles.pct}>{Math.round(fraction * 100)}%</span>}
-        </div>
-
-        {stages.length > 0 && (
-          <ol className={styles.stages} aria-label="Stages">
-            {stages.map((stage, i) => {
-              const current = live && i === stages.length - 1;
-              return (
-                <li key={stage} className={styles.stage} data-current={current}>
-                  <Icon name={current ? "progress_activity" : "check"} size={16} />
-                  {humanStage(stage)}
-                </li>
-              );
-            })}
-          </ol>
-        )}
-
-        <div className={styles.runActions}>
-          {live ? (
-            <Button variant="outlined" icon="close" onClick={cancel} disabled={cancelling}>
-              {cancelling ? "Cancelling" : "Cancel"}
-            </Button>
-          ) : (
-            <LinkButton variant="tonal" to={`/agents/${run.agent_id}`} icon="replay" viewTransition>
-              New run
-            </LinkButton>
-          )}
-          {cancelError && (
-            <span className="body-m" style={{ color: "var(--error)" }}>
-              {cancelError}
+        <div className={styles.runMain}>
+          <div className={styles.runTop}>
+            <Link to={`/agents/${run.agent_id}`} className={styles.runAgent} viewTransition>
+              <AgentAvatar id={run.agent_id} name={name} size={40} />
+              <span>{name}</span>
+            </Link>
+            <StatusChip run={run} />
+            <span className={styles.runId}>
+              <span className="mono">run {shortId(run.run_id)}</span>
+              <CopyButton text={run.run_id} label="Copy run id" />
             </span>
+          </div>
+
+          <div className={styles.runMessage} aria-live="polite">
+            <h1 key={title}>{title}</h1>
+            {detail && <p className="body-l muted">{detail}</p>}
+          </div>
+
+          <div className={styles.progressRow}>
+            <WavyProgress
+              value={run.status === "cancelled" ? (run.progress?.fraction ?? 0) : fraction}
+              active={live}
+              label={`${name} progress`}
+            />
+            {fraction !== null && <span className={styles.pct}>{Math.round(fraction * 100)}%</span>}
+          </div>
+
+          {stages.length > 0 && (
+            <ol className={styles.stages} aria-label="Stages">
+              {stages.map((stage, i) => {
+                const current = live && i === stages.length - 1;
+                return (
+                  <li key={stage} className={styles.stage} data-current={current}>
+                    <Icon name={current ? "spinner" : "check"} size={16} />
+                    {humanStage(stage)}
+                  </li>
+                );
+              })}
+            </ol>
           )}
-          {elapsed !== null && live && (
-            <span className={`body-m ${styles.elapsed}`}>{clock(elapsed)} elapsed</span>
-          )}
+
+          <div className={styles.runActions}>
+            {live ? (
+              <Button variant="outlined" icon="close" onClick={cancel} disabled={cancelling}>
+                {cancelling ? "Cancelling" : "Cancel"}
+              </Button>
+            ) : (
+              <LinkButton variant="tonal" to={`/agents/${run.agent_id}`} icon="replay" viewTransition>
+                New run
+              </LinkButton>
+            )}
+            {cancelError && (
+              <span className="body-m" style={{ color: "var(--error)" }}>
+                {cancelError}
+              </span>
+            )}
+            {elapsed !== null && live && (
+              <span className={`body-m ${styles.elapsed}`}>{clock(elapsed)} elapsed</span>
+            )}
+          </div>
+        </div>
+        <div className={styles.runArt}>
+          <Minimap
+            seed={run.run_id}
+            rows={14}
+            reading={live}
+            highlights={run.status === "done" && run.result?.status !== "error" ? [2, 7, 11] : []}
+          />
         </div>
       </section>
 

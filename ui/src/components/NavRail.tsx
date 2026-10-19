@@ -12,7 +12,7 @@ const ITEMS: { to: string; icon: IconName; label: string; end: boolean }[] = [
   { to: "/runs", icon: "history", label: "Runs", end: false },
 ];
 
-const THEME_ICON = { system: "contrast", light: "light_mode", dark: "dark_mode" } as const;
+const THEME_ICON = { system: "systemTheme", light: "lightMode", dark: "darkMode" } as const;
 const THEME_LABEL = { system: "Theme: system", light: "Theme: light", dark: "Theme: dark" } as const;
 
 export function NavRail() {
@@ -29,7 +29,7 @@ export function NavRail() {
               {({ isActive }) => (
                 <>
                   <span className={styles.indicator}>
-                    <Icon name={item.icon} fill={isActive} />
+                    <Icon name={item.icon} duotone={isActive} />
                   </span>
                   <span className={styles.label}>{item.label}</span>
                 </>

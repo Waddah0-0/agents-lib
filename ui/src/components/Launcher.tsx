@@ -7,7 +7,7 @@ import { useNavigate } from "react-router";
 import type { AgentInfo } from "../api/client";
 import { startRun } from "../form/SchemaForm";
 import { fieldsFromSchema } from "../form/schema";
-import { AgentShape } from "./AgentShape";
+import { AgentAvatar } from "./AgentAvatar";
 import { IconButton } from "./Button";
 import { Icon } from "./Icon";
 import styles from "./Launcher.module.css";
@@ -72,7 +72,6 @@ export function Launcher({ agents }: { agents: AgentInfo[] }) {
 
   return (
     <div className={styles.wrap}>
-      <div className={styles.glow} aria-hidden="true" />
       <form className={styles.pill} onSubmit={submit}>
         <div className={styles.picker}>
           <button
@@ -83,9 +82,9 @@ export function Launcher({ agents }: { agents: AgentInfo[] }) {
             aria-haspopup="listbox"
             aria-expanded={menuOpen}
           >
-            <AgentShape id={agent.id} name={agent.name} size={32} />
+            <AgentAvatar id={agent.id} name={agent.name} size={32} />
             <span className={styles.pickerName}>{agent.name}</span>
-            <Icon name="unfold_more" size={20} />
+            <Icon name="unfold" size={20} />
           </button>
           <div
             ref={menuRef}
@@ -109,7 +108,7 @@ export function Launcher({ agents }: { agents: AgentInfo[] }) {
                   inputRef.current?.focus();
                 }}
               >
-                <AgentShape id={a.id} name={a.name} size={36} />
+                <AgentAvatar id={a.id} name={a.name} size={36} />
                 <span className={styles.optionText}>
                   <span className="title-s">{a.name}</span>
                   <span className="body-s muted">{a.description}</span>
@@ -126,9 +125,7 @@ export function Launcher({ agents }: { agents: AgentInfo[] }) {
             className={styles.input}
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder={
-              primary.placeholder ? `Try ${primary.placeholder}` : (primary.description ?? primary.label)
-            }
+            placeholder={primary.placeholder ?? primary.description ?? primary.label}
             aria-label={primary.label}
             spellCheck={false}
             autoComplete="off"
@@ -137,30 +134,34 @@ export function Launcher({ agents }: { agents: AgentInfo[] }) {
           <span className={`${styles.input} ${styles.placeholder}`}>This agent has no single main input</span>
         )}
         <IconButton
-          type="button"
-          icon="tune"
-          label="More options"
-          onClick={() =>
-            navigate(`/agents/${agent.id}`, {
-              viewTransition: true,
-              state: primary && text.trim() ? { [primary.name]: text.trim() } : undefined,
-            })
-          }
-        />
-        <IconButton
           type="submit"
-          icon={busy ? "progress_activity" : "arrow_forward"}
+          icon={busy ? "spinner" : "forward"}
           label={primary ? "Run" : "Open"}
           variant="filled"
           disabled={busy}
           className={styles.go}
         />
       </form>
-      {error && (
-        <p className={styles.error} role="alert">
-          <Icon name="error" size={18} /> {error}
-        </p>
-      )}
+      <div className={styles.below}>
+        <button
+          type="button"
+          className={styles.more}
+          onClick={() =>
+            navigate(`/agents/${agent.id}`, {
+              viewTransition: true,
+              state: primary && text.trim() ? { [primary.name]: text.trim() } : undefined,
+            })
+          }
+        >
+          <Icon name="options" size={16} />
+          More options
+        </button>
+        {error && (
+          <p className={styles.error} role="alert">
+            <Icon name="error" size={16} /> {error}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

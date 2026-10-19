@@ -11,7 +11,7 @@ export function CopyButton({ text, label = "Copy" }: { text: string; label?: str
   }, [copied]);
   return (
     <IconButton
-      icon={copied ? "check" : "content_copy"}
+      icon={copied ? "check" : "copy"}
       label={copied ? "Copied" : label}
       onClick={() => navigator.clipboard?.writeText(text).then(() => setCopied(true))}
     />

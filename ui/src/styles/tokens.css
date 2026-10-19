@@ -1,8 +1,11 @@
-/* Type, shape, motion and elevation tokens (Material 3). Colours are in theme.css. */
+/* Type, shape, motion and elevation tokens. Colours are generated into theme.css. */
 
 :root {
-  --font-sans: "Google Sans Flex", "Google Sans", "Roboto Flex", system-ui, sans-serif;
-  --font-mono: "Google Sans Code", ui-monospace, "Cascadia Code", Consolas, monospace;
+  /* Fraunces for display and headings (soft, a little wonky: a notebook, not a dashboard);
+     Instrument Sans for the interface; JetBrains Mono for code and evidence */
+  --font-display: "Fraunces", "Iowan Old Style", Georgia, serif;
+  --font-sans: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
 
   /* shape scale */
   --shape-xs: 4px;
@@ -31,72 +34,80 @@
   --ease-emphasized-accelerate: cubic-bezier(0.3, 0, 0.8, 0.15);
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
 
-  /* elevation: used sparingly, surfaces carry depth by tone */
-  --elev-1: 0 1px 2px rgb(0 0 0 / 0.12), 0 1px 3px 1px rgb(0 0 0 / 0.06);
-  --elev-2: 0 1px 2px rgb(0 0 0 / 0.12), 0 2px 6px 2px rgb(0 0 0 / 0.07);
-  --elev-3: 0 4px 8px 3px rgb(0 0 0 / 0.08), 0 1px 3px rgb(0 0 0 / 0.12);
+  /* elevation: used sparingly, surfaces carry depth by tone; shadows are warm, like paper */
+  --elev-1: 0 1px 2px rgb(60 40 10 / 0.1), 0 1px 3px 1px rgb(60 40 10 / 0.05);
+  --elev-2: 0 1px 2px rgb(60 40 10 / 0.1), 0 3px 8px 2px rgb(60 40 10 / 0.07);
+  --elev-3: 0 6px 14px 4px rgb(60 40 10 / 0.08), 0 1px 3px rgb(60 40 10 / 0.12);
 
   /* state layer opacities */
   --state-hover: 0.08;
   --state-focus: 0.1;
   --state-pressed: 0.1;
 
-  /* Google's four colours, softened for the atmospheric wash and glow */
-  --wash-blue: #a8c7fa;
-  --wash-red: #f6aea9;
-  --wash-yellow: #fde293;
-  --wash-green: #a8dab5;
-  --glow: #4f8cff;
-  --gradient-text: linear-gradient(90deg, #1a73e8 0%, #4f8cff 55%, #7ea8ff 100%);
+  /* notebook paper: the dot grid behind hero panels */
+  --paper-dot: color-mix(in srgb, var(--on-surface) 11%, transparent);
+  --paper-grid: 22px;
 
   --rail-width: 88px;
   --content-max: 1180px;
 }
 
-:root[data-theme="dark"] {
-  --wash-blue: #1f3a6b;
-  --wash-red: #5a2a2a;
-  --wash-yellow: #4f4220;
-  --wash-green: #1e4a32;
-  --glow: #3d6fe0;
-  --gradient-text: linear-gradient(90deg, #8ab4f8 0%, #a8c7fa 60%, #d3e3fd 100%);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --wash-blue: #1f3a6b;
-    --wash-red: #5a2a2a;
-    --wash-yellow: #4f4220;
-    --wash-green: #1e4a32;
-    --glow: #3d6fe0;
-    --gradient-text: linear-gradient(90deg, #8ab4f8 0%, #a8c7fa 60%, #d3e3fd 100%);
-  }
-}
-
 /* ---- type scale ------------------------------------------------------------------- */
 
-.display-l { font-size: 57px; line-height: 64px; letter-spacing: -0.25px; font-weight: 350; }
-.display-m { font-size: 45px; line-height: 52px; font-weight: 350; }
-.display-s { font-size: 36px; line-height: 44px; font-weight: 400; }
+.display-l,
+.display-m,
+.display-s,
+.headline-l,
+.headline-m,
+.headline-s,
+.serif {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-variation-settings: "SOFT" 100, "WONK" 0;
+  letter-spacing: -0.01em;
+}
+
+.display-l { font-size: 57px; line-height: 64px; font-weight: 360; letter-spacing: -0.02em; }
+.display-m { font-size: 45px; line-height: 52px; font-weight: 360; }
+.display-s { font-size: 36px; line-height: 44px; font-weight: 380; }
 .headline-l { font-size: 32px; line-height: 40px; font-weight: 400; }
 .headline-m { font-size: 28px; line-height: 36px; font-weight: 400; }
 .headline-s { font-size: 24px; line-height: 32px; font-weight: 400; }
-.title-l { font-size: 22px; line-height: 28px; font-weight: 400; }
-.title-m { font-size: 16px; line-height: 24px; font-weight: 500; letter-spacing: 0.15px; }
-.title-s { font-size: 14px; line-height: 20px; font-weight: 500; letter-spacing: 0.1px; }
-.body-l { font-size: 16px; line-height: 24px; letter-spacing: 0.5px; }
-.body-m { font-size: 14px; line-height: 20px; letter-spacing: 0.25px; }
-.body-s { font-size: 12px; line-height: 16px; letter-spacing: 0.4px; }
-.label-l { font-size: 14px; line-height: 20px; font-weight: 500; letter-spacing: 0.1px; }
-.label-m { font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: 0.5px; }
-.label-s { font-size: 11px; line-height: 16px; font-weight: 500; letter-spacing: 0.5px; }
+.title-l { font-size: 22px; line-height: 28px; font-weight: 500; letter-spacing: -0.005em; }
+.title-m { font-size: 16px; line-height: 24px; font-weight: 600; letter-spacing: 0; }
+.title-s { font-size: 14px; line-height: 20px; font-weight: 600; letter-spacing: 0; }
+.body-l { font-size: 16px; line-height: 24px; letter-spacing: 0.1px; }
+.body-m { font-size: 14px; line-height: 20px; letter-spacing: 0.1px; }
+.body-s { font-size: 12px; line-height: 16px; letter-spacing: 0.2px; }
+.label-l { font-size: 14px; line-height: 20px; font-weight: 600; letter-spacing: 0.1px; }
+.label-m { font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.3px; }
+.label-s { font-size: 11px; line-height: 16px; font-weight: 600; letter-spacing: 0.4px; }
 
-.mono { font-family: var(--font-mono); font-size: 0.92em; letter-spacing: 0; }
+.mono { font-family: var(--font-mono); font-size: 0.9em; letter-spacing: 0; }
 .muted { color: var(--on-surface-variant); }
 
-.gradient-text {
-  background: var(--gradient-text);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+/* ---- the highlighter: agents-lib's signature mark ---------------------------------- */
+
+/* A highlighter stroke behind text, swiped in from the left. Used for the one phrase that
+   matters on a page and for evidence. */
+.marker {
+  position: relative;
+  isolation: isolate;
+  white-space: nowrap;
+}
+
+.marker::before {
+  content: "";
+  position: absolute;
+  inset: 52% -0.12em 4% -0.08em;
+  z-index: -1;
+  border-radius: 0.18em 0.32em 0.22em 0.4em;
+  background: var(--marker);
+  transform: skewX(-8deg) scaleX(var(--marker-progress, 1));
+  transform-origin: left center;
+  animation: marker-swipe 900ms var(--ease-emphasized) 350ms both;
+}
+
+@keyframes marker-swipe {
+  from { transform: skewX(-8deg) scaleX(0); }
 }

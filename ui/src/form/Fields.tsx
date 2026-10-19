@@ -163,7 +163,7 @@ export function SelectField({ field, value, onChange }: FieldProps) {
           ))}
         </select>
         <span className={styles.floating}>{field.label}</span>
-        <Icon name="arrow_drop_down" className={styles.dropdown} />
+        <Icon name="dropdown" className={styles.dropdown} />
       </label>
       <Support id={`${id}-support`} field={field} />
     </div>

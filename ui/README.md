@@ -4,7 +4,7 @@ A web page for running agents-lib agents. It talks only to the HTTP API: pick an
 in a form generated from its input schema, watch the run live, and read the result with all
 its evidence.
 
-The look follows Google's own product sites (Material 3 Expressive, Gemini, NotebookLM).
+It is designed as a lab notebook: warm paper, ink, and a highlighter that marks the evidence.
 [DESIGN.md](DESIGN.md) explains the choices.
 
 ## Running it
@@ -55,9 +55,9 @@ Generated files (do not edit by hand):
 | File | Regenerate with | When |
 |---|---|---|
 | `src/api/schema.d.ts` | `npm run gen:api` | The API changed (`ui/openapi.json` is updated by `scripts/export_openapi.py`) |
-| `src/styles/theme.css` | `npm run gen:theme` | To change the seed colour or the springs |
-| `src/styles/fonts.css`, `public/fonts/` | `npm run fetch:fonts` | After adding an icon to `src/components/icons.ts` |
+| `src/styles/theme.css` | `npm run gen:theme` | To change the palette or the springs |
+| `src/styles/fonts.css`, `public/fonts/` | `npm run fetch:fonts` | To change or update the fonts |
 
-The fonts are bundled, so the UI works offline. Google Sans Flex and Google Sans Code are
-under the SIL Open Font License, and Material Symbols under the Apache License 2.0. The
-licence texts are in `public/fonts/`.
+The fonts are bundled, so the UI works offline: Fraunces, Instrument Sans and JetBrains
+Mono, all under the SIL Open Font License (texts in `public/fonts/`). Icons are Phosphor
+(MIT), and only the ones listed in `src/components/icons.ts` end up in the bundle.

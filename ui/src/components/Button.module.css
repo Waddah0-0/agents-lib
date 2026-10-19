@@ -125,7 +125,7 @@
   transition: border-radius var(--spring-fast-spatial-duration) var(--spring-fast-spatial);
 }
 
-.iconButton :global(.material-symbols-rounded) {
+.iconButton :global(.icon) {
   font-size: 22px;
 }
 

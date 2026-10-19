@@ -1,7 +1,7 @@
 import { Link } from "react-router";
 import type { AgentInfo, RunView } from "../api/client";
 import { duration, secondsBetween, shortId, timeAgo } from "../lib/format";
-import { AgentShape } from "./AgentShape";
+import { AgentAvatar } from "./AgentAvatar";
 import { Icon } from "./Icon";
 import styles from "./RunList.module.css";
 import { StatusChip } from "./StatusChip";
@@ -16,7 +16,7 @@ export function RunList({ runs, agents }: { runs: RunView[]; agents: AgentInfo[]
         return (
           <li key={run.run_id}>
             <Link to={`/runs/${run.run_id}`} className={styles.row} viewTransition>
-              <AgentShape id={run.agent_id} name={name} size={40} />
+              <AgentAvatar id={run.agent_id} name={name} size={40} />
               <span className={styles.main}>
                 <span className="title-m">{name}</span>
                 <span className="body-m muted">
@@ -32,7 +32,7 @@ export function RunList({ runs, agents }: { runs: RunView[]; agents: AgentInfo[]
                   <span className="mono">{shortId(run.run_id)}</span>
                 </span>
               </span>
-              <Icon name="chevron_right" className={styles.chevron} />
+              <Icon name="chevronRight" className={styles.chevron} />
             </Link>
           </li>
         );

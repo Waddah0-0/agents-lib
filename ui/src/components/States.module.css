@@ -17,25 +17,33 @@
   --badge-fg: var(--on-error-container);
 }
 
+/* a small sheet of paper, slightly tilted, with a highlighter stroke under the icon */
 .badge {
   position: relative;
   display: grid;
   place-items: center;
-  width: 88px;
-  height: 88px;
-  margin-bottom: 8px;
+  width: 84px;
+  height: 84px;
+  margin-bottom: 12px;
+  border-radius: 26px;
+  background: var(--badge-bg);
   color: var(--badge-fg);
+  rotate: -5deg;
+  isolation: isolate;
+  animation: tilt-in var(--spring-slow-spatial-duration) var(--spring-slow-spatial) both;
 }
 
-.badge svg {
+.badge::after {
+  content: "";
   position: absolute;
-  inset: 0;
-  fill: var(--badge-bg);
-  animation: turn 24s linear infinite;
-}
-
-.badge :global(.material-symbols-rounded) {
-  position: relative;
+  left: 22px;
+  right: 18px;
+  bottom: 22px;
+  height: 10px;
+  z-index: -1;
+  border-radius: 3px 6px 4px 7px;
+  background: var(--marker);
+  rotate: 3deg;
 }
 
 .body {
@@ -64,6 +72,6 @@
   from { opacity: 0; transform: translateY(12px); }
 }
 
-@keyframes turn {
-  to { rotate: 360deg; }
+@keyframes tilt-in {
+  from { rotate: 8deg; scale: 0.8; }
 }

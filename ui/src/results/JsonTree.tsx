@@ -58,7 +58,7 @@ function Node({
   return (
     <div>
       <button type="button" className={styles.toggle} onClick={() => setOpen(!open)} aria-expanded={open}>
-        <Icon name="chevron_right" size={18} className={styles.chevron} />
+        <Icon name="chevronRight" size={18} className={styles.chevron} />
         {key}
         {key && <span className={styles.punct}>: </span>}
         <span className={styles.punct}>{openB}</span>

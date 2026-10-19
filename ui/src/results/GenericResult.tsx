@@ -70,7 +70,7 @@ function FindingCard({ finding, open }: { finding: Finding; open: boolean }) {
         {evidence.length > 0 && (
           <span className={styles.evidenceCount}>
             {evidence.length} {evidence.length === 1 ? "piece" : "pieces"} of evidence
-            <Icon name="expand_more" className={styles.chevron} />
+            <Icon name="expand" className={styles.chevron} />
           </span>
         )}
       </summary>
@@ -107,13 +107,13 @@ export function GenericResult({ run, result }: ResultViewProps) {
   const details: [IconName, string, string][] = [];
   if (meta?.duration_s !== null && meta?.duration_s !== undefined)
     details.push(["timer", "Duration", duration(meta.duration_s)]);
-  if (meta?.model) details.push(["neurology", "Model", meta.model]);
+  if (meta?.model) details.push(["model", "Model", meta.model]);
   if (usage?.llm_calls) {
-    details.push(["forum", "Model calls", String(usage.llm_calls)]);
-    details.push(["token", "Tokens in / out", `${usage.input_tokens} / ${usage.output_tokens}`]);
-    if (usage.cost_usd) details.push(["payments", "Estimated cost", `$${usage.cost_usd.toFixed(4)}`]);
+    details.push(["modelCalls", "Model calls", String(usage.llm_calls)]);
+    details.push(["tokens", "Tokens in / out", `${usage.input_tokens} / ${usage.output_tokens}`]);
+    if (usage.cost_usd) details.push(["cost", "Estimated cost", `$${usage.cost_usd.toFixed(4)}`]);
   }
-  details.push(["deployed_code", "Agent version", result.agent_version]);
+  details.push(["package", "Agent version", result.agent_version]);
 
   return (
     <div className={styles.result}>
@@ -152,7 +152,7 @@ export function GenericResult({ run, result }: ResultViewProps) {
           <Button
             variant="text"
             size="s"
-            icon="content_copy"
+            icon="copy"
             onClick={() => navigator.clipboard?.writeText(toMarkdown(result))}
           >
             Copy as Markdown
@@ -207,10 +207,10 @@ export function GenericResult({ run, result }: ResultViewProps) {
       <section className={styles.section}>
         <details className={styles.raw}>
           <summary className={styles.rawHead}>
-            <Icon name="data_object" />
+            <Icon name="code" />
             <span className="title-m">Raw result</span>
             <span className="body-m muted">Everything the agent returned, as JSON</span>
-            <Icon name="expand_more" className={styles.chevron} />
+            <Icon name="expand" className={styles.chevron} />
           </summary>
           <div className={styles.rawBody}>
             <JsonTree value={result} openDepth={1} />

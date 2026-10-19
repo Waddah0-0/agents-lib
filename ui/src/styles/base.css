@@ -17,7 +17,7 @@ body {
   font-family: var(--font-sans);
   font-size: 14px;
   line-height: 20px;
-  letter-spacing: 0.25px;
+  letter-spacing: 0.1px;
   font-optical-sizing: auto;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -53,7 +53,8 @@ code, pre, kbd {
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--primary) 26%, transparent);
+  background: var(--marker);
+  color: var(--on-surface);
 }
 
 :focus-visible {
@@ -67,27 +68,11 @@ code, pre, kbd {
   scrollbar-color: var(--outline-variant) transparent;
 }
 
-.material-symbols-rounded {
-  /* biome-ignore lint/a11y/useGenericFontNames: an icon font has no generic fallback */
-  font-family: "Material Symbols Rounded";
-  font-weight: normal;
-  font-style: normal;
+/* icons are inline SVGs sized by font-size (1em) */
+.icon {
   font-size: 24px;
-  line-height: 1;
-  letter-spacing: normal;
-  text-transform: none;
-  display: inline-block;
-  white-space: nowrap;
-  direction: ltr;
-  -webkit-font-smoothing: antialiased;
-  font-variation-settings: "FILL" 0, "wght" 300, "GRAD" 0, "opsz" 24;
-  user-select: none;
   flex-shrink: 0;
-  transition: font-variation-settings var(--dur-medium2) var(--ease-standard);
-}
-
-.material-symbols-rounded[data-fill="true"] {
-  font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
+  vertical-align: -0.125em;
 }
 
 .spin {

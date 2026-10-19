@@ -12,17 +12,17 @@ export function runLook(run: RunView): Look {
     case "queued":
       return {
         tone: "neutral",
-        icon: "schedule",
+        icon: "queued",
         label: run.queue_position ? `Queued, ${ordinal(run.queue_position)} in line` : "Queued",
       };
     case "running":
-      return { tone: "active", icon: "progress_activity", label: "Running" };
+      return { tone: "active", icon: "spinner", label: "Running" };
     case "cancelled":
       return { tone: "neutral", icon: "block", label: "Cancelled" };
     default:
       if (run.result?.status === "error") return { tone: "error", icon: "error", label: "Failed" };
       if (run.result?.status === "partial") return { tone: "warn", icon: "warning", label: "Partial" };
-      return { tone: "ok", icon: "check_circle", label: "Done" };
+      return { tone: "ok", icon: "checkCircle", label: "Done" };
   }
 }
 

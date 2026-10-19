@@ -1,6 +1,7 @@
 import { useAgents, useRuns } from "../api/hooks";
 import { AgentCard } from "../components/AgentCard";
 import { LinkButton } from "../components/Button";
+import { EvidenceSheet } from "../components/EvidenceSheet";
 import { Launcher } from "../components/Launcher";
 import { LoadingIndicator } from "../components/Loading";
 import { RunList } from "../components/RunList";
@@ -15,21 +16,32 @@ export function HomePage() {
   return (
     <div className={styles.page}>
       <section className={styles.hero}>
-        <h1 className={styles.headline}>
-          Agents that <span className="gradient-text">show their work</span>
-        </h1>
-        <p className={styles.lede}>
-          Run an agent on a folder or a GitHub repository. Every answer comes with the evidence behind it, so
-          you can check it yourself.
-        </p>
-        <div className={styles.launcherSlot}>
-          {agents.loading && !agents.data ? (
-            <div className={styles.skeletonPill}>
-              <LoadingIndicator size={36} label="Loading agents" />
-            </div>
-          ) : list.length > 0 ? (
-            <Launcher agents={list} />
-          ) : null}
+        <div className={styles.heroText}>
+          {list.length > 0 && (
+            <span className={styles.eyebrow}>
+              <b>{list.length}</b>
+              {list.length === 1 ? "agent installed" : "agents installed"}
+            </span>
+          )}
+          <h1 className={styles.headline}>
+            Agents that <span className="marker">show their work</span>
+          </h1>
+          <p className={styles.lede}>
+            Point an agent at a folder or a GitHub repository. Every answer comes with the evidence behind it,
+            for and against, so you can check it yourself.
+          </p>
+          <div className={styles.launcherSlot}>
+            {agents.loading && !agents.data ? (
+              <div className={styles.skeletonPill}>
+                <LoadingIndicator size={36} label="Loading agents" />
+              </div>
+            ) : list.length > 0 ? (
+              <Launcher agents={list} />
+            ) : null}
+          </div>
+        </div>
+        <div className={styles.heroArt}>
+          <EvidenceSheet />
         </div>
       </section>
 
@@ -39,7 +51,7 @@ export function HomePage() {
         <section className={styles.section}>
           <div className={styles.sectionHead}>
             <h2>Agents</h2>
-            <LinkButton variant="text" to="/agents" trailingIcon="arrow_forward" viewTransition>
+            <LinkButton variant="text" to="/agents" trailingIcon="forward" viewTransition>
               All agents
             </LinkButton>
           </div>
@@ -55,7 +67,7 @@ export function HomePage() {
         <section className={styles.section}>
           <div className={styles.sectionHead}>
             <h2>Recent runs</h2>
-            <LinkButton variant="text" to="/runs" trailingIcon="arrow_forward" viewTransition>
+            <LinkButton variant="text" to="/runs" trailingIcon="forward" viewTransition>
               All runs
             </LinkButton>
           </div>

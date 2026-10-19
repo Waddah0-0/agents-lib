@@ -27,7 +27,7 @@ export function RunsPage() {
           icon="history"
           title="No runs yet"
           action={
-            <LinkButton variant="filled" to="/agents" icon="play_arrow" viewTransition>
+            <LinkButton variant="filled" to="/agents" icon="play" viewTransition>
               Run an agent
             </LinkButton>
           }
