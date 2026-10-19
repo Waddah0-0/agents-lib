@@ -39,7 +39,7 @@ RUN apt-get update \
 
 COPY --from=python /app/.venv /app/.venv
 COPY --from=ui /ui/dist /app/ui
-COPY docker/entrypoint.sh /usr/local/bin/margin-entrypoint
+COPY --chmod=755 docker/entrypoint.sh /usr/local/bin/margin-entrypoint
 
 ENV PATH=/app/.venv/bin:$PATH \
     PYTHONUNBUFFERED=1 \
