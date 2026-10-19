@@ -200,6 +200,28 @@ Pick an agent, give it a folder or a GitHub URL, and watch it work. Every result
 exported as JSON or Markdown. [ui/README.md](ui/README.md) has the details, and
 [ui/DESIGN.md](ui/DESIGN.md) explains the design.
 
+### With Docker
+
+One container runs everything: the API and the web UI on one address.
+
+```bash
+docker compose up            # then open http://localhost:8000
+```
+
+- **The model stays outside the container by default.** Ollama (or LM Studio...) keeps
+  running on your computer with direct access to the GPU, and the container talks to it. Pick
+  another model or a hosted provider on the Settings page.
+- **Agents can read the folder you start it from**, mounted read-only at `/workspace`; point
+  the detector at `/workspace/...`. Set `MARGIN_WORKSPACE` to share another folder. GitHub
+  URLs work without any setup.
+- **Settings, keys and the detector's cache** are kept in a Docker volume, so they survive
+  rebuilds.
+- **It's private by default.** It listens on this computer only, runs as a non-root user, and
+  answers only to `localhost`.
+
+`compose.yaml` lists the options, including running Ollama inside Docker on Linux with an
+NVIDIA GPU.
+
 The same agents can be used from Python:
 
 ```python

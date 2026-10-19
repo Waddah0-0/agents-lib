@@ -26,6 +26,16 @@ import { PlainTextField } from "../form/Fields";
 import pageStyles from "./pages.module.css";
 import styles from "./SettingsPage.module.css";
 
+/** The host part of a local server address, so presets can keep it (e.g. in Docker). */
+function presetHost(url: string): string {
+  try {
+    const host = new URL(url).hostname;
+    return host === "host.docker.internal" ? host : "localhost";
+  } catch {
+    return "localhost";
+  }
+}
+
 type SourceName = ProviderSettings["model_source"];
 
 function SourceNote({ source, what }: { source: SourceName; what: string }) {
@@ -317,18 +327,23 @@ export function SettingsPage() {
             <>
               <fieldset className={styles.presets}>
                 <legend className="visually-hidden">Local server</legend>
-                {LOCAL_SERVERS.map((s) => (
-                  <button
-                    key={s.name}
-                    type="button"
-                    className={styles.preset}
-                    aria-pressed={draft.localUrl.replace(/\/$/, "") === s.url}
-                    onClick={() => set({ localUrl: s.url })}
-                  >
-                    {s.name}
-                    <span>{s.url.replace("http://localhost", "")}</span>
-                  </button>
-                ))}
+                {LOCAL_SERVERS.map((s) => {
+                  // keep the host the address already uses: inside Docker that is the
+                  // host machine (host.docker.internal), not the container's own localhost
+                  const url = s.url.replace("localhost", presetHost(draft.localUrl));
+                  return (
+                    <button
+                      key={s.name}
+                      type="button"
+                      className={styles.preset}
+                      aria-pressed={draft.localUrl.replace(/\/$/, "") === url}
+                      onClick={() => set({ localUrl: url })}
+                    >
+                      {s.name}
+                      <span>{s.url.replace("http://localhost", "")}</span>
+                    </button>
+                  );
+                })}
               </fieldset>
               <PlainTextField
                 label="Server address"

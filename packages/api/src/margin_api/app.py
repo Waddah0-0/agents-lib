@@ -6,12 +6,14 @@ import json
 from collections.abc import AsyncIterator, Awaitable, Callable, MutableMapping
 from contextlib import asynccontextmanager
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Literal
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
+from fastapi.staticfiles import StaticFiles
 from margin_core import (
     AgentInfo,
     AgentLoadError,
@@ -286,4 +288,31 @@ def create_app(
     async def http_error(_: Request, exc: HTTPException) -> JSONResponse:
         return JSONResponse({"detail": exc.detail}, status_code=exc.status_code)
 
+    if settings.ui_dir:
+        _serve_ui(app, Path(settings.ui_dir))
     return app
+
+
+def _serve_ui(app: FastAPI, ui_dir: Path) -> None:
+    """Serve the built web UI from ``ui_dir``. The UI's pages share paths with the API
+    (``/agents``, ``/runs/<id>``), so a browser loading a page (it asks for HTML) gets the UI,
+    while the UI's own requests (they ask for JSON or events) reach the API."""
+    root = ui_dir.resolve()
+    index = root / "index.html"
+    if not index.is_file():
+        raise RuntimeError(f"MARGIN_API_UI_DIR has no index.html: {root}")
+    api_pages = ("/docs", "/redoc", "/openapi.json")
+
+    @app.middleware("http")
+    async def ui_pages(
+        request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
+        path = request.url.path
+        wants_page = request.method == "GET" and "text/html" in request.headers.get("accept", "")
+        if wants_page and not path.startswith(api_pages):
+            candidate = (root / path.lstrip("/")).resolve()
+            if not (candidate.is_file() and root in candidate.parents):
+                return FileResponse(index)
+        return await call_next(request)
+
+    app.mount("/", StaticFiles(directory=root, html=True), name="ui")

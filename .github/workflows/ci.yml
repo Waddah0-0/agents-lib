@@ -84,3 +84,22 @@ jobs:
 
       - name: Build
         run: npx vite build
+
+  docker:
+    name: Docker image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build
+        run: docker build -t margin:ci .
+
+      - name: Smoke test (API, UI and agents from the image)
+        run: |
+          docker run -d --name margin -p 127.0.0.1:8000:8000 margin:ci
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:8000/health && break; sleep 1; done
+          curl -sf http://127.0.0.1:8000/agents | grep -q ai-code-detector
+          curl -sf -H 'accept: text/html' http://127.0.0.1:8000/runs/x | grep -q '<title>margin</title>'
+          test "$(docker inspect --format '{{.Config.User}}' margin)" = margin
+          docker rm -f margin

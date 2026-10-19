@@ -16,6 +16,8 @@ class ApiSettings(BaseSettings):
     # Host names the API answers to (protects against DNS rebinding). Add yours if you
     # change ``host`` to expose the API on a network.
     allowed_hosts: list[str] = ["127.0.0.1", "localhost"]
+    # A built web UI (ui/dist) to serve from the same address, so one server is the whole app.
+    ui_dir: str | None = None
     max_body_bytes: int = 1_000_000
     llm_concurrency: int = 1  # runs of agents that use a model (a local model has one GPU)
     other_concurrency: int = 4  # runs of agents that do not

@@ -1,0 +1,51 @@
+# margin with Docker:  docker compose up   then open http://localhost:8000
+#
+# Settings (optional, in a .env file next to this one or in your shell):
+#   MARGIN_PORT         port on this computer (default 8000)
+#   MARGIN_WORKSPACE    folder the agents may read, mounted read-only at /workspace
+#                       (default: this folder). Point the detector at /workspace/...
+#   MARGIN_LOCAL_LLM_URL  your local model server as seen from the container
+#                       (default: Ollama on this computer). Only used on the first start;
+#                       after that, change it on the Settings page.
+#   GITHUB_TOKEN        raises GitHub's rate limits for public repositories
+#
+# Model inside Docker instead (Linux with an NVIDIA GPU):
+#   MARGIN_LOCAL_LLM_URL=http://ollama:11434 docker compose --profile ollama up
+#   docker compose exec ollama ollama pull qwen3.5:9b
+
+name: margin
+
+services:
+  margin:
+    build: .
+    image: margin:latest
+    ports:
+      # this computer only; nothing on your network can reach it
+      - "127.0.0.1:${MARGIN_PORT:-8000}:8000"
+    environment:
+      MARGIN_SEED_LOCAL_LLM_BASE_URL: ${MARGIN_LOCAL_LLM_URL:-http://host.docker.internal:11434}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - margin-data:/data  # saved settings, keys and the model-verdict cache
+      - ${MARGIN_WORKSPACE:-.}:/workspace:ro
+    restart: unless-stopped
+
+  ollama:
+    profiles: ["ollama"]
+    image: ollama/ollama:0.40.6
+    volumes:
+      - ollama-models:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
+
+volumes:
+  margin-data:
+  ollama-models:

@@ -358,3 +358,31 @@ def test_settings_changes_apply_to_the_next_run(settings_client: TestClient) -> 
     # a model (the agent reports that) rather than failing the request
     run_id = start(settings_client, "gpu", {"steps": 1})
     assert wait_for(settings_client, run_id, {"done"})["llm"]["provider"] == "openai"
+
+
+# ---- serving the built UI --------------------------------------------------------------
+
+
+def test_serves_the_ui_alongside_the_api(tmp_path: Path) -> None:
+    (tmp_path / "assets").mkdir()
+    (tmp_path / "index.html").write_text("<html>margin ui</html>", encoding="utf-8")
+    (tmp_path / "assets" / "app.js").write_text("console.log(1)", encoding="utf-8")
+    settings = ApiSettings(ui_dir=str(tmp_path))
+    app = create_app(registry=_registry(), settings=settings, llm_factory=no_model)
+    page = {"accept": "text/html,application/xhtml+xml"}
+    with TestClient(app, base_url="http://127.0.0.1") as c:
+        assert "margin ui" in c.get("/", headers=page).text
+        assert "margin ui" in c.get("/runs/abc123", headers=page).text  # a deep link loads the UI
+        assert c.get("/assets/app.js").text == "console.log(1)"
+        assert c.get("/agents").json()["agents"]  # the UI's own requests still reach the API
+        assert c.get("/runs/abc123").status_code == 404
+        assert "swagger" in c.get("/docs", headers=page).text.lower()  # API docs stay reachable
+        assert c.get("/../pyproject.toml", headers=page).status_code in (200, 404)
+        assert "margin ui" in c.get("/%2e%2e/secret", headers=page).text  # no escape from ui_dir
+
+
+def test_ui_dir_without_index_is_refused(tmp_path: Path) -> None:
+    with pytest.raises(RuntimeError, match="index.html"):
+        create_app(
+            registry=_registry(), settings=ApiSettings(ui_dir=str(tmp_path)), llm_factory=no_model
+        )

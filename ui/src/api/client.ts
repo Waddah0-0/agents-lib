@@ -12,7 +12,11 @@ export type RunView = Schemas["RunView"];
 export type RunStatus = RunView["status"];
 export type JsonSchema = Record<string, unknown>;
 
+// VITE_API_URL="" means the API serves this UI itself (the Docker image): same address.
 export const API_URL: string = (import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000").replace(/\/$/, "");
+
+/** Where the API is, for messages: the page's own address when they are served together. */
+export const API_LABEL: string = API_URL || globalThis.location?.origin || "this address";
 
 // fetch is looked up per request (not captured once), so tests can stub it
 export const api = createClient<paths>({ baseUrl: API_URL, fetch: (request) => globalThis.fetch(request) });
@@ -20,7 +24,7 @@ export const api = createClient<paths>({ baseUrl: API_URL, fetch: (request) => g
 /** The API could not be reached at all (not started, wrong port, CORS). */
 export class ApiUnreachable extends Error {
   constructor() {
-    super(`Can't reach the API at ${API_URL}`);
+    super(`Can't reach the API at ${API_LABEL}`);
   }
 }
 

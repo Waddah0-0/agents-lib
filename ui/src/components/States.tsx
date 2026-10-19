@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { API_URL, ApiUnreachable } from "../api/client";
+import { API_LABEL, ApiUnreachable } from "../api/client";
 import { Button } from "./Button";
 import { CopyButton } from "./CopyButton";
 import { Icon } from "./Icon";
@@ -43,7 +43,7 @@ export function ErrorState({ error, onRetry }: { error: Error; onRetry?: () => v
     return (
       <EmptyState icon="offline" title="Can't reach the API" action={retry}>
         <p>
-          The UI talks to the margin API at <code className="mono">{API_URL}</code>. Start it from the
+          The UI talks to the margin API at <code className="mono">{API_LABEL}</code>. Start it from the
           repository:
         </p>
         <div className={styles.command}>

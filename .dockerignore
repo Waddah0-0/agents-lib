@@ -1,0 +1,16 @@
+# Only what the image needs; never secrets or local state.
+.git
+.env
+.env.*
+!.env.example
+PLAN.md
+**/__pycache__
+**/*.pyc
+.venv
+.mypy_cache
+.ruff_cache
+.pytest_cache
+ui/node_modules
+ui/dist
+agents/*/eval/results
+**/.DS_Store
