@@ -1,0 +1,42 @@
+import { useAgents, useRuns } from "../api/hooks";
+import { LinkButton } from "../components/Button";
+import { PageLoading } from "../components/Loading";
+import { RunList } from "../components/RunList";
+import { EmptyState, ErrorState } from "../components/States";
+import styles from "./pages.module.css";
+
+export function RunsPage() {
+  const runs = useRuns(100);
+  const agents = useAgents();
+
+  return (
+    <div className={styles.page}>
+      <header className={styles.pageHead}>
+        <h1>Runs</h1>
+        <p className="body-l muted">
+          Runs live in the API's memory: they are kept for an hour and forgotten when it restarts. Export a
+          result to keep it.
+        </p>
+      </header>
+
+      {runs.loading && !runs.data && <PageLoading label="Loading runs" />}
+      {runs.error && <ErrorState error={runs.error} onRetry={runs.reload} />}
+
+      {runs.data && runs.data.length === 0 && (
+        <EmptyState
+          icon="history"
+          title="No runs yet"
+          action={
+            <LinkButton variant="filled" to="/agents" icon="play_arrow" viewTransition>
+              Run an agent
+            </LinkButton>
+          }
+        >
+          <p>Start one from an agent's page and it will show up here.</p>
+        </EmptyState>
+      )}
+
+      {runs.data && runs.data.length > 0 && <RunList runs={runs.data} agents={agents.data?.agents ?? []} />}
+    </div>
+  );
+}

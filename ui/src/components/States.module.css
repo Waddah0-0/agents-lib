@@ -1,0 +1,69 @@
+.empty {
+  --badge-bg: var(--surface-container-high);
+  --badge-fg: var(--on-surface-variant);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 72px 24px;
+  text-align: center;
+  animation: rise var(--dur-long2) var(--ease-emphasized-decelerate) both;
+}
+
+.empty[data-tone="error"] {
+  --badge-bg: var(--error-container);
+  --badge-fg: var(--on-error-container);
+}
+
+.badge {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  margin-bottom: 8px;
+  color: var(--badge-fg);
+}
+
+.badge svg {
+  position: absolute;
+  inset: 0;
+  fill: var(--badge-bg);
+  animation: turn 24s linear infinite;
+}
+
+.badge :global(.material-symbols-rounded) {
+  position: relative;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.command {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 4px 4px 16px;
+  border-radius: var(--shape-full);
+  background: var(--surface-container-high);
+  color: var(--on-surface);
+  font-size: 14px;
+}
+
+.action {
+  margin-top: 12px;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(12px); }
+}
+
+@keyframes turn {
+  to { rotate: 360deg; }
+}

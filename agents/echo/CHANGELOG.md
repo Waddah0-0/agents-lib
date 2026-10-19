@@ -9,3 +9,4 @@ All notable changes to this agent are documented here. The format follows
 ### Added
 - Echo a message, optionally repeated, and optionally ask the model to reply.
 - `message` is the primary input.
+- `message` carries an example value for forms.

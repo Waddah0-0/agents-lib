@@ -10,8 +10,9 @@ The hard, boring parts are solved once in a shared core: cloning repositories sa
 skipping lockfiles and minified bundles, retrying flaky model calls, keeping track of cost,
 and rendering results. An agent only has to contain the logic that makes it different.
 
-The project is early. The core library is finished and tested. The first real agent, the
-command-line tool, the HTTP API and the web UI are still to come (see [Status](#status)).
+The project is young but usable: the core, the first real agent, the command-line tool, the
+HTTP API and a web UI all work. A custom view for the detector and the first PyPI release are
+next (see [Status](#status)).
 
 ## Why build it this way
 
@@ -35,6 +36,8 @@ agents-lib makes three decisions to avoid that:
 ## How it fits together
 
 ```
+                        web UI
+                          |
         CLI            HTTP API          Python code
           \               |                  /
            +-------- agent registry --------+
@@ -57,7 +60,8 @@ inside it can be versioned and published on its own:
 | `packages/cli` | The `agents` command-line tool. |
 | `packages/api` | The HTTP server: run agents in the background, follow them live, cancel them ([details](packages/api/README.md)). |
 | `agents/echo` | A minimal reference agent, used for smoke tests and as a template. |
-| `agents/ai_code_detector` | The first real agent (in progress). |
+| `agents/ai_code_detector` | The first real agent: estimates how much of a codebase was written with AI tools. |
+| `ui/` | The web UI, a client of the HTTP API ([details](ui/README.md)). |
 | `examples/` | Small runnable scripts. |
 | `scripts/` | Workspace tools: create an agent, check agent folders, mirror agents, type-check. |
 | `tests/` | Tests for the workspace tools. |
@@ -143,7 +147,8 @@ The project is built in phases, each one usable before the next begins.
 | 3 | AI Code Detector with heuristic signals, plus the evaluation harness that measures it | Done |
 | 4 | LLM judge, larger evaluation dataset, fitted scoring | Done |
 | 5 | HTTP API with background runs and live progress | Done |
-| 6–7 | Web UI: a generic one for every agent, plus a custom view for the detector | Next |
+| 6 | Web UI for every agent: schema-generated forms, live runs, results with evidence | Done |
+| 7 | A custom result view for the AI Code Detector | Next |
 | 8 | Hardening and the first PyPI release | Planned |
 
 ## Getting started
@@ -173,11 +178,21 @@ field, and `--input file.json` reads them from a file. Reports go to stdout (or 
 progress and warnings go to stderr, so JSON output can be piped safely. See
 [the CLI's README](packages/cli/README.md) for every option and exit code.
 
-Or over HTTP, for a web UI or another program:
+Or over HTTP, for another program:
 
 ```bash
 uv run agents-api            # then open http://127.0.0.1:8000/docs
 ```
+
+Or in the browser. With the API running, start the web UI (Node 20 or newer):
+
+```bash
+cd ui && npm install && npm run dev    # http://localhost:3000
+```
+
+Pick an agent, give it a folder or a GitHub URL, and watch it work. Every result can be
+exported as JSON or Markdown. [ui/README.md](ui/README.md) has the details, and
+[ui/DESIGN.md](ui/DESIGN.md) explains the design.
 
 The same agents can be used from Python:
 
@@ -209,13 +224,22 @@ need a change to the core, that change should be general enough to help every ag
 
 ## Development
 
-Run these before you commit. CI runs the same checks on Python 3.11 and 3.12.
+Run these before you commit. CI runs the same checks on Python 3.11 and 3.12, and the UI
+checks on Node 22.
 
 ```bash
 uv run ruff check .          # lint
 uv run ruff format --check . # formatting
 uv run python scripts/typecheck.py  # strict type checking, per package
 uv run pytest                # tests; no network access needed
+```
+
+For the web UI, from `ui/`:
+
+```bash
+npx biome check .            # lint and formatting
+npm run typecheck
+npm test
 ```
 
 Commits follow the [Conventional Commits](https://www.conventionalcommits.org) style

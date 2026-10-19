@@ -1,0 +1,63 @@
+# agents-lib web UI
+
+A web page for running agents-lib agents. It talks only to the HTTP API: pick an agent, fill
+in a form generated from its input schema, watch the run live, and read the result with all
+its evidence.
+
+The look follows Google's own product sites (Material 3 Expressive, Gemini, NotebookLM).
+[DESIGN.md](DESIGN.md) explains the choices.
+
+## Running it
+
+You need Node 20 or newer, and the API running:
+
+```bash
+uv run agents-api            # from the repository root: http://127.0.0.1:8000
+
+cd ui
+npm install
+npm run dev                  # http://localhost:3000
+```
+
+The API only accepts browser requests from `localhost:3000` and `127.0.0.1:3000` by default
+(`AGENTS_API_CORS_ORIGINS`). To point the UI at another API address, set `VITE_API_URL`:
+
+```bash
+VITE_API_URL=http://127.0.0.1:9000 npm run dev
+```
+
+`npm run build` writes a static site to `dist/`, which any web server can host.
+
+## What's in it
+
+| Page | What it does |
+|---|---|
+| Home | Pick an agent, paste its main input, run. Also shows the installed agents and recent runs. |
+| Agents | Every installed agent, plus any that failed to load and why. |
+| Agent | The input form, generated from the agent's JSON schema: the main input first, other fields under "More options". It also shows the same run as an `agents run` command. |
+| Run | Live progress over server-sent events: stage, percentage, queue position. You can cancel from here. When the run finishes, the result appears below. |
+| Runs | Recent runs. They live in the API's memory for an hour. |
+
+Results use a generic viewer that works for any agent: the summary, findings with expandable
+evidence, warnings, run details, the raw JSON, and export to JSON or Markdown. An agent can
+have its own view instead. Register it in `src/results/registry.ts` under the agent's id.
+
+## Development
+
+```bash
+npm test                     # unit and component tests (Vitest)
+npm run typecheck
+npx biome check .            # lint and format check (npx biome check --write . to fix)
+```
+
+Generated files (do not edit by hand):
+
+| File | Regenerate with | When |
+|---|---|---|
+| `src/api/schema.d.ts` | `npm run gen:api` | The API changed (`ui/openapi.json` is updated by `scripts/export_openapi.py`) |
+| `src/styles/theme.css` | `npm run gen:theme` | To change the seed colour or the springs |
+| `src/styles/fonts.css`, `public/fonts/` | `npm run fetch:fonts` | After adding an icon to `src/components/icons.ts` |
+
+The fonts are bundled, so the UI works offline. Google Sans Flex and Google Sans Code are
+under the SIL Open Font License, and Material Symbols under the Apache License 2.0. The
+licence texts are in `public/fonts/`.
