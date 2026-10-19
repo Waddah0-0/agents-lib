@@ -61,7 +61,7 @@ inside it can be versioned and published on its own:
 | `examples/` | Small runnable scripts. |
 | `scripts/` | Workspace tools: create an agent, check agent folders, mirror agents, type-check. |
 | `tests/` | Tests for the workspace tools. |
-| `docs/` | Guides, starting with [writing an agent](docs/writing-an-agent.md). |
+| `docs/` | Guides: [writing an agent](docs/writing-an-agent.md) and [how the AI Code Detector scores code](docs/methodology.md). |
 
 ### The core, piece by piece
 
@@ -141,8 +141,8 @@ The project is built in phases, each one usable before the next begins.
 | 1.5 | Core fixes (per-run LLM budgets, git history scoped to the target, safer clones) and the agent sub-repo standard | Done |
 | 2 | Command-line tool (`agents list`, `agents info`, `agents run`) | Done |
 | 3 | AI Code Detector with heuristic signals, plus the evaluation harness that measures it | Done |
-| 4 | LLM judge, larger evaluation dataset, calibrated scoring | Next |
-| 5 | HTTP API with background runs and live progress | Planned |
+| 4 | LLM judge, larger evaluation dataset, fitted scoring | Done |
+| 5 | HTTP API with background runs and live progress | Next |
 | 6–7 | Web UI: a generic one for every agent, plus a custom view for the detector | Planned |
 | 8 | Hardening and the first PyPI release | Planned |
 
