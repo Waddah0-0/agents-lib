@@ -31,6 +31,11 @@ log-odds = 1.38 + 0.27 x (files' average signal log-odds) + 1.54 x (judge's aver
 The judge carries most of the weight because, in evaluation, it was the only source of
 evidence that worked on recent code.
 
+**4. The range** comes from resampling the files 1,000 times and taking the 10th to 90th
+percentile; the judge term is recomputed for every resample, so a verdict on only a few files
+widens it. Resampling measures how much the files disagree, not how unsure the method is, so
+the reported range is also at least ±0.15 wide at low confidence and ±0.07 at medium.
+
 ## What is reported but not scored
 
 - **AI-tool markers:** config files such as `CLAUDE.md` or `.cursorrules`, co-author trailers

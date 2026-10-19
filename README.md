@@ -11,8 +11,7 @@ skipping lockfiles and minified bundles, retrying flaky model calls, keeping tra
 and rendering results. An agent only has to contain the logic that makes it different.
 
 The project is young but usable: the core, the first real agent, the command-line tool, the
-HTTP API and a web UI all work. A custom view for the detector and the first PyPI release are
-next (see [Status](#status)).
+HTTP API and a web UI all work. The first PyPI release is next (see [Status](#status)).
 
 ## Why build it this way
 
@@ -148,7 +147,7 @@ The project is built in phases, each one usable before the next begins.
 | 4 | LLM judge, larger evaluation dataset, fitted scoring | Done |
 | 5 | HTTP API with background runs and live progress | Done |
 | 6 | Web UI for every agent: schema-generated forms, live runs, results with evidence | Done |
-| 7 | A custom result view for the AI Code Detector | Next |
+| 7 | A custom result view for the AI Code Detector: evidence side by side, marked code, history | Done |
 | 8 | Hardening and the first PyPI release | Planned |
 
 ## Getting started

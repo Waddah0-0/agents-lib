@@ -42,6 +42,14 @@ Results use a generic viewer that works for any agent: the summary, findings wit
 evidence, warnings, run details, the raw JSON, and export to JSON or Markdown. An agent can
 have its own view instead. Register it in `src/results/registry.ts` under the agent's id.
 
+The AI Code Detector has one (`src/results/detector/`):
+- the estimate on a 0 to 1 scale with its range, the confidence and why, and a permanent
+  "estimate, not proof" note;
+- the evidence for and against, side by side; click any item to open the code;
+- a file tree coloured by likelihood, with unscored files greyed out;
+- the file's code with marked lines and the reasons beside them;
+- the commit history, showing commits that name an AI tool and unusually large ones.
+
 ## Development
 
 ```bash

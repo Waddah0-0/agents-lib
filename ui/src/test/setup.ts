@@ -3,3 +3,6 @@ import { afterEach } from "vitest";
 
 // Testing Library only cleans up on its own when test globals are enabled
 afterEach(cleanup);
+
+// jsdom does not implement scrolling
+if (!Element.prototype.scrollIntoView) Element.prototype.scrollIntoView = () => {};
