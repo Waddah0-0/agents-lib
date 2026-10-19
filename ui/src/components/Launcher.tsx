@@ -12,9 +12,31 @@ import { IconButton } from "./Button";
 import { Icon } from "./Icon";
 import styles from "./Launcher.module.css";
 
+const LAST_AGENT_KEY = "margin:last-agent";
+
+function readLastAgent(): string | null {
+  try {
+    return localStorage.getItem(LAST_AGENT_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function saveLastAgent(id: string) {
+  try {
+    localStorage.setItem(LAST_AGENT_KEY, id);
+  } catch {
+    // private mode: the launcher just starts on the first agent next time
+  }
+}
+
 export function Launcher({ agents }: { agents: AgentInfo[] }) {
   const navigate = useNavigate();
-  const [agentId, setAgentId] = useState(() => (agents.find((a) => a.uses_llm) ?? agents[0])?.id);
+  // start on the agent used last time, so the launcher doesn't favour any one agent
+  const [agentId, setAgentId] = useState(() => {
+    const last = readLastAgent();
+    return (agents.find((a) => a.id === last) ?? agents[0])?.id;
+  });
   const [text, setText] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -63,6 +85,7 @@ export function Launcher({ agents }: { agents: AgentInfo[] }) {
     setError(undefined);
     try {
       const runId = await startRun(agent.id, { [primary.name]: text.trim() });
+      saveLastAgent(agent.id);
       navigate(`/runs/${runId}`, { viewTransition: true });
     } catch (err) {
       setError((err as Error).message);
@@ -103,6 +126,7 @@ export function Launcher({ agents }: { agents: AgentInfo[] }) {
                 className={styles.option}
                 onClick={() => {
                   setAgentId(a.id);
+                  saveLastAgent(a.id);
                   menuRef.current?.hidePopover();
                   setError(undefined);
                   inputRef.current?.focus();

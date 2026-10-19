@@ -1,7 +1,7 @@
 import { useAgents, useRuns } from "../api/hooks";
 import { AgentCard } from "../components/AgentCard";
+import { AgentDeck } from "../components/AgentDeck";
 import { LinkButton } from "../components/Button";
-import { EvidenceSheet } from "../components/EvidenceSheet";
 import { Launcher } from "../components/Launcher";
 import { LoadingIndicator } from "../components/Loading";
 import { RunList } from "../components/RunList";
@@ -27,8 +27,8 @@ export function HomePage() {
             Agents that <span className="marker">show their work</span>
           </h1>
           <p className={styles.lede}>
-            Point an agent at a folder or a GitHub repository. Every answer comes with the evidence behind it,
-            for and against, so you can check it yourself.
+            A library of small, focused agents. Give one a job and it answers with findings, each with the
+            evidence behind it, so you can check its work instead of taking its word.
           </p>
           <div className={styles.launcherSlot}>
             {agents.loading && !agents.data ? (
@@ -41,7 +41,7 @@ export function HomePage() {
           </div>
         </div>
         <div className={styles.heroArt}>
-          <EvidenceSheet />
+          <AgentDeck agents={list} />
         </div>
       </section>
 

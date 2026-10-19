@@ -8,7 +8,7 @@ export function AgentCard({ agent }: { agent: AgentInfo }) {
   return (
     <Link to={`/agents/${agent.id}`} className={styles.card} viewTransition>
       <div className={styles.top}>
-        <AgentAvatar id={agent.id} name={agent.name} size={56} />
+        <AgentAvatar id={agent.id} name={agent.name} size={56} morph />
         <Icon name="open" className={styles.arrow} />
       </div>
       <h3 className="headline-s">{agent.name}</h3>

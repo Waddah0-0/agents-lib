@@ -7,6 +7,7 @@ import { PageLoading } from "../components/Loading";
 import { EmptyState, ErrorState } from "../components/States";
 import { SchemaForm } from "../form/SchemaForm";
 import type { FormValues } from "../form/schema";
+import { agentIntroFor } from "../results/registry";
 import styles from "./pages.module.css";
 
 export function AgentPage() {
@@ -15,6 +16,7 @@ export function AgentPage() {
   const agents = useAgents();
   const agent = agents.data?.agents.find((a) => a.id === agentId);
   const loadError = agents.data?.load_errors?.[agentId];
+  const Intro = agentIntroFor(agentId);
 
   if (agents.loading && !agents.data) return <PageLoading label="Loading agent" />;
   if (agents.error) {
@@ -50,7 +52,7 @@ export function AgentPage() {
           <LinkButton variant="text" to="/agents" icon="back" className={styles.back} viewTransition>
             Agents
           </LinkButton>
-          <AgentAvatar id={agent.id} name={agent.name} size={104} />
+          <AgentAvatar id={agent.id} name={agent.name} size={104} morph />
           <h1>{agent.name}</h1>
           <p className="body-l muted">{agent.description}</p>
           <div className={styles.chips}>
@@ -65,6 +67,7 @@ export function AgentPage() {
             )}
             <span className={`${styles.chip} mono`}>{agent.id}</span>
           </div>
+          {Intro && <Intro agent={agent} />}
         </aside>
         <section className={styles.formPanel}>
           <h2>New run</h2>

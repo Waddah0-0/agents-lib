@@ -32,9 +32,9 @@ VITE_API_URL=http://127.0.0.1:9000 npm run dev
 
 | Page | What it does |
 |---|---|
-| Home | Pick an agent, paste its main input, run. Also shows the installed agents and recent runs. |
+| Home | The library's front page: a card for every installed agent, a launcher (pick an agent, paste its main input, run; it remembers the last agent used), and recent runs. |
 | Agents | Every installed agent, plus any that failed to load and why. |
-| Agent | The input form, generated from the agent's JSON schema: the main input first, other fields under "More options". It also shows the same run as an `margin run` command. |
+| Agent | The input form, generated from the agent's JSON schema: the main input first, other fields under "More options". It also shows the same run as a `margin run` command. An agent can add its own intro beside the form (`agentIntroFor` in `src/results/registry.ts`); the AI Code Detector's explains how it reads code. |
 | Run | Live progress over server-sent events: stage, percentage, queue position. You can cancel from here. When the run finishes, the result appears below. |
 | Runs | Recent runs. They live in the API's memory for an hour. |
 

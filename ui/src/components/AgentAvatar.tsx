@@ -21,11 +21,14 @@ export function AgentAvatar({
   id,
   name,
   size = 48,
+  morph = false,
   className,
 }: {
   id: string;
   name: string;
   size?: number;
+  /** Morph into the same agent's avatar on the next page (one per page, or the browser skips it). */
+  morph?: boolean;
   className?: string;
 }) {
   const h = hash(id);
@@ -41,7 +44,7 @@ export function AgentAvatar({
           width: size,
           height: size,
           fontSize: size * 0.56,
-          viewTransitionName: `agent-${id}`,
+          viewTransitionName: morph ? `agent-${id}` : undefined,
           "--tilt": `${tilt}deg`,
         } as CSSProperties
       }

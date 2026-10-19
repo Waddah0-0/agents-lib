@@ -13,9 +13,14 @@ matters.
   navigation item, the current stage of a run, selected text, and evidence lines.
 - **Paper** shows as a faint dot grid behind the two hero panels, and as tilted sheets in the
   illustrations. Shadows are warm, like paper on a desk.
-- **The code minimap** stands in for a file: rounded bars indented like code. On the home
-  page, two lines carry margin notes, one for and one against. On a live run, a highlight
-  steps down the file line by line, the way the agent reads it.
+- **The card catalogue** on the home page: margin is a library, so its front page is a stack
+  of index cards, one per installed agent, that cycles through them. It grows on its own as
+  agents are installed; no agent is featured over the others.
+- **The code minimap** stands in for a file: rounded bars indented like code. On a live run,
+  a highlight steps down the file line by line, the way the agent reads it.
+- **Agent intros**: an agent can tell its own story on its page (registered by id, like
+  custom result views). The AI Code Detector's shows a sheet of code with two lines carrying
+  margin notes, one for and one against. The home page never describes a single agent.
 
 ## Principles
 
@@ -23,7 +28,7 @@ We took these from the best product design we know, including the research behin
 Material 3 Expressive. We took the principles only, never anyone's brand.
 
 - **Simple, with a few complex touches.** There are two hero moments: the home page (headline,
-  launcher, evidence sheet) and the live run (wavy progress, reading minimap). Lists, forms
+  launcher, card catalogue) and the live run (wavy progress, reading minimap). Lists, forms
   and results stay plain and quiet.
 - **Motion has a job.** It shows where something came from, or that work is happening, and
   it never plays just to be seen. Springs settle with a little overshoot.
