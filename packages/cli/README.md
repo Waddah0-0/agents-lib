@@ -1,23 +1,23 @@
-# agents-lib-cli
+# margin-cli
 
-The `agents` command lists, describes and runs every agent installed with agents-lib.
+The `agents` command lists, describes and runs every agent installed with margin.
 Installing an agent package is enough for it to appear here.
 
 ## Commands
 
 ```bash
-agents list [--json]                 # installed agents (and any that failed to load)
-agents info <agent> [--json]         # description and input fields
-agents run <agent> [INPUT] [options] # run it and print the report
-agents version
+margin list [--json]                 # installed agents (and any that failed to load)
+margin info <agent> [--json]         # description and input fields
+margin run <agent> [INPUT] [options] # run it and print the report
+margin version
 ```
 
-`agents --verbose ...` (or `-v`) prints debug logs on stderr.
+`margin --verbose ...` (or `-v`) prints debug logs on stderr.
 
 ## Giving an agent its input
 
 - **The positional value** fills the agent's main input field (shown as "positional" by
-  `agents info`). For the detector that is the repository URL or path; for echo, the
+  `margin info`). For the detector that is the repository URL or path; for echo, the
   message.
 - **`--set field=value`** (repeatable, short `-s`) sets any field. Values are read as JSON
   when they are valid JSON (`3`, `true`, `["a","b"]`), except for text fields, which always
@@ -25,14 +25,14 @@ agents version
 - **`--input file.json`** (`-i`) reads fields from a JSON object. `--set` overrides it.
 
 ```bash
-agents run echo hello --set repeat=3
-agents run echo --set message=hello --set use_llm=true
-agents run echo -i input.json -s repeat=1
+margin run echo hello --set repeat=3
+margin run echo --set message=hello --set use_llm=true
+margin run echo -i input.json -s repeat=1
 ```
 
 Giving the main field both positionally and with `--set` is an error.
 
-## Options of `agents run`
+## Options of `margin run`
 
 | Option | Meaning |
 |---|---|
@@ -52,7 +52,7 @@ A provider or model you choose with `--provider` or `--model` is checked straigh
 ## Output streams
 
 Only the report goes to stdout. Progress, warnings and errors go to stderr. This keeps
-`agents run ... --format json > report.json` valid JSON.
+`margin run ... --format json > report.json` valid JSON.
 
 ## Exit codes
 

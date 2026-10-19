@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from agents_core import AgentInput
+from margin_core import AgentInput
 from pydantic import BaseModel, Field
 
 

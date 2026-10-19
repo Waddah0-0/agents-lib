@@ -1,7 +1,7 @@
 [project]
-name = "agents-lib-workspace"
+name = "margin-workspace"
 version = "0.1.0"
-description = "Monorepo workspace for agents-lib"
+description = "Monorepo workspace for margin"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = []
@@ -15,8 +15,8 @@ dev = [
     "pre-commit>=3.7.0",
 ]
 
-[tool.agents-lib]
-repository = "https://github.com/Waddah0-0/agents-lib"
+[tool.margin]
+repository = "https://github.com/Waddah0-0/margin"
 mirror-owner = "Waddah0-0"
 
 [tool.uv.workspace]
@@ -26,11 +26,11 @@ members = [
 ]
 
 [tool.uv.sources]
-agents-lib-core = { workspace = true }
-agents-lib-cli = { workspace = true }
-agents-lib-api = { workspace = true }
-agents-lib-ai-code-detector = { workspace = true }
-agents-lib-echo = { workspace = true }
+margin-core = { workspace = true }
+margin-cli = { workspace = true }
+margin-api = { workspace = true }
+margin-ai-code-detector = { workspace = true }
+margin-echo = { workspace = true }
 
 [tool.ruff]
 line-length = 100

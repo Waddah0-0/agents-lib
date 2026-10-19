@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 
 import pytest
-from agents_core import AgentResult, Evidence, Finding, ProgressEvent, TokenUsage
+from margin_core import AgentResult, Evidence, Finding, ProgressEvent, TokenUsage
 from pydantic import ValidationError
 
 

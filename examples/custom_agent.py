@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import asyncio
 
-from agents_core import (
+from margin_core import (
     AgentInput,
     AgentRegistry,
     AgentResult,
@@ -19,8 +19,8 @@ from agents_core import (
     RunContext,
     run_agent,
 )
-from agents_core.llm import MockLLM
-from agents_core.reporting import to_markdown
+from margin_core.llm import MockLLM
+from margin_core.reporting import to_markdown
 from pydantic import BaseModel, Field
 
 

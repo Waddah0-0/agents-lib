@@ -13,9 +13,10 @@ from importlib.metadata import EntryPoint
 from pathlib import Path
 
 import pytest
-from agents_cli import main as cli
-from agents_cli.execution import ProgressDisplay, execute_cancellable
-from agents_core import (
+from echo_agent import EchoAgent
+from margin_cli import main as cli
+from margin_cli.execution import ProgressDisplay, execute_cancellable
+from margin_core import (
     AgentInput,
     AgentRegistry,
     AgentResult,
@@ -23,9 +24,8 @@ from agents_core import (
     ProgressEvent,
     RunContext,
 )
-from agents_core.models import ResultStatus
-from agents_core.registry import ENTRY_POINT_GROUP
-from echo_agent import EchoAgent
+from margin_core.models import ResultStatus
+from margin_core.registry import ENTRY_POINT_GROUP
 from pydantic import BaseModel
 from rich.console import Console
 from typer.testing import CliRunner
@@ -107,7 +107,7 @@ def invoke(*args: str) -> tuple[int, str, str]:
 
 def test_version() -> None:
     code, out, _ = invoke("version")
-    assert code == 0 and out.startswith("agents-lib-cli v0.1.0 (core v")
+    assert code == 0 and out.startswith("margin-cli v0.1.0 (core v")
 
 
 def test_list_table_and_load_errors() -> None:
@@ -131,7 +131,7 @@ def test_info_marks_the_positional_field() -> None:
     code, out, _ = invoke("info", "echo")
     assert code == 0
     assert "message (positional)" in out
-    assert "agents run echo <message>" in out
+    assert "margin run echo <message>" in out
 
 
 def test_info_json_has_schemas() -> None:
@@ -336,8 +336,8 @@ def test_progress_display_off_when_not_a_terminal() -> None:
 
 SIGINT_SCRIPT = """
 import asyncio, sys
-from agents_cli import main as cli
-from agents_core import AgentInput, AgentRegistry, AgentResult, BaseAgent, RunContext
+from margin_cli import main as cli
+from margin_core import AgentInput, AgentRegistry, AgentResult, BaseAgent, RunContext
 from pydantic import BaseModel
 
 class In(AgentInput):
@@ -370,7 +370,7 @@ def test_ctrl_c_cancels_and_exits_130() -> None:
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
-        env={**os.environ, "AGENTS_LIB_ENV_FILE": ""},
+        env={**os.environ, "MARGIN_ENV_FILE": ""},
     )
     assert proc.stderr is not None
     assert proc.stderr.readline().strip() == "started"

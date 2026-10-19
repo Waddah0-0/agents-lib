@@ -1,5 +1,5 @@
 import pytest
-from agents_core.loaders.filters import (
+from margin_core.loaders.filters import (
     FilterConfig,
     classify_content,
     classify_path,

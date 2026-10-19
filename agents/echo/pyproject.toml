@@ -1,17 +1,17 @@
 [project]
-name = "agents-lib-echo"
+name = "margin-echo"
 version = "0.1.0"
-description = "Reference echo agent for agents-lib (smoke tests and examples)"
+description = "Reference echo agent for margin (smoke tests and examples)"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "agents-lib-core",
+    "margin-core",
 ]
 
-[project.entry-points."agents_lib.agents"]
+[project.entry-points."margin.agents"]
 echo = "echo_agent.agent:EchoAgent"
 
-[tool.agents-lib]
+[tool.margin]
 id = "echo"
 stage = "stable"
 # Not mirrored: echo is a test fixture and template, not a real agent.

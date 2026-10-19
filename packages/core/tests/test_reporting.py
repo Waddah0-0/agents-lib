@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from agents_core.models import AgentResult, Evidence, Finding, RunMetadata, TokenUsage
-from agents_core.reporting import to_json, to_markdown, write_json, write_markdown
+from margin_core.models import AgentResult, Evidence, Finding, RunMetadata, TokenUsage
+from margin_core.reporting import to_json, to_markdown, write_json, write_markdown
 
 
 def _sample_result(status: str = "ok") -> AgentResult:

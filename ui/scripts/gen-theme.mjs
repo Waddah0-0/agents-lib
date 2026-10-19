@@ -1,5 +1,5 @@
 // Generate src/styles/theme.css: Material 3 colour roles (light and dark) built from the
-// agents-lib palette (ink teal, highlighter amber, warm paper), the highlighter tokens, and
+// margin palette (ink teal, highlighter amber, warm paper), the highlighter tokens, and
 // spring easings as CSS linear() curves.
 //
 //   npm run gen:theme

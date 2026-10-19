@@ -101,12 +101,12 @@ describe("cliCommand", () => {
     const fields = fieldsFromSchema(detector, "target");
     const payload = { target: "https://github.com/a/b", paths: ["src"], max_files_for_judge: 5 };
     expect(cliCommand("ai-code-detector", fields, payload)).toBe(
-      `agents run ai-code-detector https://github.com/a/b -s 'paths=["src"]' -s max_files_for_judge=5`,
+      `margin run ai-code-detector https://github.com/a/b -s 'paths=["src"]' -s max_files_for_judge=5`,
     );
     expect(
       cliCommand("echo", fieldsFromSchema({ properties: { message: { type: "string" } } }, "message"), {
         message: "it's me",
       }),
-    ).toBe(`agents run echo 'it'\\''s me'`);
+    ).toBe(`margin run echo 'it'\\''s me'`);
   });
 });

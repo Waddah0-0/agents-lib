@@ -1,15 +1,15 @@
 from __future__ import annotations
 
 import pytest
-from agents_core.errors import BudgetExceededError, LLMError, TransientLLMError
-from agents_core.llm import (
+from margin_core.errors import BudgetExceededError, LLMError, TransientLLMError
+from margin_core.llm import (
     MockLLM,
     ModelPricing,
     create_llm,
     extract_json,
     lookup_pricing,
 )
-from agents_core.llm.pricing import CONSERVATIVE_FALLBACK
+from margin_core.llm.pricing import CONSERVATIVE_FALLBACK
 from pydantic import BaseModel
 
 

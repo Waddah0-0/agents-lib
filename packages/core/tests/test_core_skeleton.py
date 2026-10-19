@@ -1,4 +1,4 @@
-from agents_core import __version__
+from margin_core import __version__
 
 
 def test_core_version() -> None:

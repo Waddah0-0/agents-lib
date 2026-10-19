@@ -1,5 +1,5 @@
 import pytest
-from agents_core import (
+from margin_core import (
     AgentInput,
     AgentResult,
     BaseAgent,
@@ -8,7 +8,7 @@ from agents_core import (
     ProgressEvent,
     RunContext,
 )
-from agents_core.llm import MockLLM
+from margin_core.llm import MockLLM
 from pydantic import BaseModel, ValidationError
 
 

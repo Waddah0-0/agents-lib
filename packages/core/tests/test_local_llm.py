@@ -8,9 +8,9 @@ from typing import Any
 
 import httpx
 import pytest
-from agents_core.config import Settings
-from agents_core.errors import LLMError
-from agents_core.llm import LocalLLM, MockLLM, create_llm
+from margin_core.config import Settings
+from margin_core.errors import LLMError
+from margin_core.llm import LocalLLM, MockLLM, create_llm
 from pydantic import BaseModel
 
 

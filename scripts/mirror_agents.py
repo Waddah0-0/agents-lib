@@ -1,6 +1,6 @@
 """Mirror each agent folder, with its own history, to its own GitHub repository.
 
-For every agent whose ``[tool.agents-lib]`` table has a ``mirror`` key, the folder's history
+For every agent whose ``[tool.margin]`` table has a ``mirror`` key, the folder's history
 is extracted with ``git subtree split`` (deterministic, so repeated runs produce the same
 commits) and pushed to the mirror's ``main`` branch. It never force-pushes: if the mirror
 has commits that are not in the split, the run fails and asks for a manual look.
@@ -38,7 +38,7 @@ class MirrorError(Exception):
 class MirrorTarget:
     agent_id: str
     prefix: str  # e.g. agents/ai_code_detector
-    repo: str  # e.g. Waddah0-0/agents-lib-ai-code-detector
+    repo: str  # e.g. Waddah0-0/margin-ai-code-detector
 
 
 def mirror_targets(root: Path = ROOT) -> list[MirrorTarget]:

@@ -239,9 +239,9 @@ function shellQuote(text: string): string {
   return /^[\w@%+=:,./-]+$/.test(text) ? text : `'${text.replaceAll("'", `'\\''`)}'`;
 }
 
-/** The same run as an `agents run` command line. */
+/** The same run as an `margin run` command line. */
 export function cliCommand(agentId: string, fields: Field[], payload: Record<string, unknown>): string {
-  const parts = ["agents", "run", agentId];
+  const parts = ["margin", "run", agentId];
   const primary = fields.find((f) => f.primary);
   if (primary && typeof payload[primary.name] === "string") {
     parts.push(shellQuote(payload[primary.name] as string));

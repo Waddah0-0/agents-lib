@@ -40,23 +40,23 @@ def _files(agent_id: str, name: str, description: str, repository: str) -> dict[
     folder = f"agents/{package}"
     return {
         "pyproject.toml": f'''[project]
-name = "agents-lib-{agent_id}"
+name = "margin-{agent_id}"
 version = "0.1.0"
 description = "{description}"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "agents-lib-core",
+    "margin-core",
 ]
 
-[project.entry-points."agents_lib.agents"]
+[project.entry-points."margin.agents"]
 {agent_id} = "{package}.agent:{cls}"
 
-[tool.agents-lib]
+[tool.margin]
 id = "{agent_id}"
 stage = "planned"
 # Turn on mirroring once the agent does real work (and set stage to "experimental"):
-# mirror = "<owner>/agents-lib-{agent_id}"
+# mirror = "<owner>/margin-{agent_id}"
 
 [build-system]
 requires = ["hatchling"]
@@ -96,12 +96,12 @@ TODO: what it cannot do, and when not to trust it.
 ## Usage
 
 ```bash
-agents run {agent_id} <target>
+margin run {agent_id} <target>
 ```
 
 ## Development
 
-This agent lives in the [agents-lib]({repository}) monorepo, in
+This agent lives in the [margin]({repository}) monorepo, in
 [`{folder}`]({repository}/tree/main/{folder}). If you are reading this in its mirror
 repository, that copy is read-only: open issues and pull requests in the main repository.
 
@@ -132,7 +132,7 @@ __all__ = ["{cls}", "{cls}Input", "{cls}Output", "__version__"]
 
 from __future__ import annotations
 
-from agents_core import AgentInput
+from margin_core import AgentInput
 from pydantic import BaseModel, Field
 
 
@@ -147,7 +147,7 @@ class {cls}Output(BaseModel):
 
 from __future__ import annotations
 
-from agents_core import AgentResult, BaseAgent, RunContext
+from margin_core import AgentResult, BaseAgent, RunContext
 
 from {package}.models import {cls}Input, {cls}Output
 
@@ -197,7 +197,7 @@ def _insert_after_line(text: str, anchor: str, line: str) -> str:
 def _wire_workspace(root: Path, agent_id: str, package: str, name: str, description: str) -> None:
     pyproject = root / "pyproject.toml"
     text = pyproject.read_text(encoding="utf-8")
-    source = f"agents-lib-{agent_id} = {{ workspace = true }}\n"
+    source = f"margin-{agent_id} = {{ workspace = true }}\n"
     if source not in text:
         text = _insert_after_line(text, "[tool.uv.sources]", source)
     mypy_entry = f'    "agents/{package}/src",\n'

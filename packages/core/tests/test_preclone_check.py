@@ -6,9 +6,9 @@ from pathlib import Path
 
 import httpx
 import pytest
-from agents_core import AgentInput, AgentResult, BaseAgent, RunContext
-from agents_core.errors import InvalidTargetError, LimitExceededError
-from agents_core.loaders import GitHubLoader, LoaderLimits
+from margin_core import AgentInput, AgentResult, BaseAgent, RunContext
+from margin_core.errors import InvalidTargetError, LimitExceededError
+from margin_core.loaders import GitHubLoader, LoaderLimits
 from pydantic import BaseModel
 
 
@@ -104,10 +104,10 @@ async def test_workspace_warnings_reach_the_result(tmp_path: Path) -> None:
 def test_token_comes_from_env_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     env = tmp_path / ".env"
     env.write_text("GITHUB_TOKEN=from-dotenv\n", encoding="utf-8")
-    monkeypatch.setenv("AGENTS_LIB_ENV_FILE", str(env))
+    monkeypatch.setenv("MARGIN_ENV_FILE", str(env))
     assert GitHubLoader().github_token == "from-dotenv"
     monkeypatch.setenv("GITHUB_TOKEN", "from-env")
     assert GitHubLoader().github_token == "from-env"  # real environment variables win
-    monkeypatch.setenv("AGENTS_LIB_ENV_FILE", "")
+    monkeypatch.setenv("MARGIN_ENV_FILE", "")
     monkeypatch.delenv("GITHUB_TOKEN")
     assert GitHubLoader().github_token is None

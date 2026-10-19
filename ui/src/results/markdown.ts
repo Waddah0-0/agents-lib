@@ -1,4 +1,4 @@
-/** Render an AgentResult as Markdown. Mirrors agents_core.reporting.markdown_report. */
+/** Render an AgentResult as Markdown. Mirrors margin_core.reporting.markdown_report. */
 import type { AgentResult, Evidence } from "../api/client";
 
 const cell = (text: unknown) => String(text).replaceAll("|", "\\|").replaceAll("\n", " ");

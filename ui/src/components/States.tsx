@@ -43,12 +43,12 @@ export function ErrorState({ error, onRetry }: { error: Error; onRetry?: () => v
     return (
       <EmptyState icon="offline" title="Can't reach the API" action={retry}>
         <p>
-          The UI talks to the agents-lib API at <code className="mono">{API_URL}</code>. Start it from the
+          The UI talks to the margin API at <code className="mono">{API_URL}</code>. Start it from the
           repository:
         </p>
         <div className={styles.command}>
-          <code>uv run agents-api</code>
-          <CopyButton text="uv run agents-api" label="Copy command" />
+          <code>uv run margin-api</code>
+          <CopyButton text="uv run margin-api" label="Copy command" />
         </div>
       </EmptyState>
     );

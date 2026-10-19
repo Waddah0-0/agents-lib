@@ -35,7 +35,7 @@ export function AgentsPage() {
 
       {agents.data && list.length === 0 && (
         <EmptyState icon="widgets" title="No agents installed">
-          <p>Agents are Python packages registered under the agents_lib.agents entry point.</p>
+          <p>Agents are Python packages registered under the margin.agents entry point.</p>
         </EmptyState>
       )}
 

@@ -86,7 +86,7 @@
 .mono { font-family: var(--font-mono); font-size: 0.9em; letter-spacing: 0; }
 .muted { color: var(--on-surface-variant); }
 
-/* ---- the highlighter: agents-lib's signature mark ---------------------------------- */
+/* ---- the highlighter: margin's signature mark ---------------------------------- */
 
 /* A highlighter stroke behind text, swiped in from the left. Used for the one phrase that
    matters on a page and for evidence. */

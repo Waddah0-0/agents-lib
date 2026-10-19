@@ -8,124 +8,12 @@ resolution-markers = [
 
 [manifest]
 members = [
-    "agents-lib-ai-code-detector",
-    "agents-lib-api",
-    "agents-lib-cli",
-    "agents-lib-core",
-    "agents-lib-echo",
-    "agents-lib-workspace",
-]
-
-[[package]]
-name = "agents-lib-ai-code-detector"
-version = "0.2.0"
-source = { editable = "agents/ai_code_detector" }
-dependencies = [
-    { name = "agents-lib-core" },
-    { name = "tree-sitter" },
-    { name = "tree-sitter-javascript" },
-    { name = "tree-sitter-typescript" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "agents-lib-core", editable = "packages/core" },
-    { name = "tree-sitter", specifier = ">=0.24,<0.26" },
-    { name = "tree-sitter-javascript", specifier = ">=0.23" },
-    { name = "tree-sitter-typescript", specifier = ">=0.23" },
-]
-
-[[package]]
-name = "agents-lib-api"
-version = "0.1.0"
-source = { editable = "packages/api" }
-dependencies = [
-    { name = "agents-lib-core" },
-    { name = "fastapi" },
-    { name = "httpx" },
-    { name = "pydantic-settings" },
-    { name = "sse-starlette" },
-    { name = "uvicorn" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "agents-lib-core", editable = "packages/core" },
-    { name = "fastapi", specifier = ">=0.111.0" },
-    { name = "httpx", specifier = ">=0.27.0" },
-    { name = "pydantic-settings", specifier = ">=2.2.0" },
-    { name = "sse-starlette", specifier = ">=2.1.0" },
-    { name = "uvicorn", specifier = ">=0.30.0" },
-]
-
-[[package]]
-name = "agents-lib-cli"
-version = "0.1.0"
-source = { editable = "packages/cli" }
-dependencies = [
-    { name = "agents-lib-core" },
-    { name = "rich" },
-    { name = "typer" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "agents-lib-core", editable = "packages/core" },
-    { name = "rich", specifier = ">=13.7.0" },
-    { name = "typer", specifier = ">=0.12.0" },
-]
-
-[[package]]
-name = "agents-lib-core"
-version = "0.1.0"
-source = { editable = "packages/core" }
-dependencies = [
-    { name = "httpx" },
-    { name = "pydantic" },
-    { name = "pydantic-settings" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "httpx", specifier = ">=0.27.0" },
-    { name = "pydantic", specifier = ">=2.7.0" },
-    { name = "pydantic-settings", specifier = ">=2.2.0" },
-]
-
-[[package]]
-name = "agents-lib-echo"
-version = "0.1.0"
-source = { editable = "agents/echo" }
-dependencies = [
-    { name = "agents-lib-core" },
-]
-
-[package.metadata]
-requires-dist = [{ name = "agents-lib-core", editable = "packages/core" }]
-
-[[package]]
-name = "agents-lib-workspace"
-version = "0.1.0"
-source = { virtual = "." }
-
-[package.dev-dependencies]
-dev = [
-    { name = "mypy" },
-    { name = "pre-commit" },
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-    { name = "ruff" },
-]
-
-[package.metadata]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "mypy", specifier = ">=1.10.0" },
-    { name = "pre-commit", specifier = ">=3.7.0" },
-    { name = "pytest", specifier = ">=8.0.0" },
-    { name = "pytest-asyncio", specifier = ">=0.23.0" },
-    { name = "ruff", specifier = ">=0.6.0" },
+    "margin-ai-code-detector",
+    "margin-api",
+    "margin-cli",
+    "margin-core",
+    "margin-echo",
+    "margin-workspace",
 ]
 
 [[package]]
@@ -472,6 +360,118 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/c1/ea/7421d9e6db894cd6cd788b604b3394a163ded6b942052b6f96c23ccf08e1/librt-0.16.0-cp315-cp315t-win32.whl", hash = "sha256:375bfe6b572a8f6cfc398709356046173bf27e64c4c5edaf5f7062f051fb4bf9", size = 104355, upload-time = "2026-09-29T00:55:04.533Z" },
     { url = "https://files.pythonhosted.org/packages/85/6d/7c31a506eb847bc58aeb2402d58e17605e821f68ab5df5e66fe274a6df41/librt-0.16.0-cp315-cp315t-win_amd64.whl", hash = "sha256:bd3150023d3dc2bc70f3784e59ffa1140d56ddba3d8125b3d6f9f85221279bfc", size = 126134, upload-time = "2026-09-29T00:55:06.017Z" },
     { url = "https://files.pythonhosted.org/packages/36/69/7a5d10ac409c4da0355e054a14371871da9b5557fcc42772cd00181c6cce/librt-0.16.0-cp315-cp315t-win_arm64.whl", hash = "sha256:8ceafb70f2a4f0826f11031942e59c0728fd98da112dc346d4352bde1e486866", size = 116391, upload-time = "2026-09-29T00:55:07.484Z" },
+]
+
+[[package]]
+name = "margin-ai-code-detector"
+version = "0.2.0"
+source = { editable = "agents/ai_code_detector" }
+dependencies = [
+    { name = "margin-core" },
+    { name = "tree-sitter" },
+    { name = "tree-sitter-javascript" },
+    { name = "tree-sitter-typescript" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "margin-core", editable = "packages/core" },
+    { name = "tree-sitter", specifier = ">=0.24,<0.26" },
+    { name = "tree-sitter-javascript", specifier = ">=0.23" },
+    { name = "tree-sitter-typescript", specifier = ">=0.23" },
+]
+
+[[package]]
+name = "margin-api"
+version = "0.1.0"
+source = { editable = "packages/api" }
+dependencies = [
+    { name = "fastapi" },
+    { name = "httpx" },
+    { name = "margin-core" },
+    { name = "pydantic-settings" },
+    { name = "sse-starlette" },
+    { name = "uvicorn" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "fastapi", specifier = ">=0.111.0" },
+    { name = "httpx", specifier = ">=0.27.0" },
+    { name = "margin-core", editable = "packages/core" },
+    { name = "pydantic-settings", specifier = ">=2.2.0" },
+    { name = "sse-starlette", specifier = ">=2.1.0" },
+    { name = "uvicorn", specifier = ">=0.30.0" },
+]
+
+[[package]]
+name = "margin-cli"
+version = "0.1.0"
+source = { editable = "packages/cli" }
+dependencies = [
+    { name = "margin-core" },
+    { name = "rich" },
+    { name = "typer" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "margin-core", editable = "packages/core" },
+    { name = "rich", specifier = ">=13.7.0" },
+    { name = "typer", specifier = ">=0.12.0" },
+]
+
+[[package]]
+name = "margin-core"
+version = "0.1.0"
+source = { editable = "packages/core" }
+dependencies = [
+    { name = "httpx" },
+    { name = "pydantic" },
+    { name = "pydantic-settings" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "httpx", specifier = ">=0.27.0" },
+    { name = "pydantic", specifier = ">=2.7.0" },
+    { name = "pydantic-settings", specifier = ">=2.2.0" },
+]
+
+[[package]]
+name = "margin-echo"
+version = "0.1.0"
+source = { editable = "agents/echo" }
+dependencies = [
+    { name = "margin-core" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "margin-core", editable = "packages/core" }]
+
+[[package]]
+name = "margin-workspace"
+version = "0.1.0"
+source = { virtual = "." }
+
+[package.dev-dependencies]
+dev = [
+    { name = "mypy" },
+    { name = "pre-commit" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "mypy", specifier = ">=1.10.0" },
+    { name = "pre-commit", specifier = ">=3.7.0" },
+    { name = "pytest", specifier = ">=8.0.0" },
+    { name = "pytest-asyncio", specifier = ">=0.23.0" },
+    { name = "ruff", specifier = ">=0.6.0" },
 ]
 
 [[package]]

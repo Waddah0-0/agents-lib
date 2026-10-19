@@ -1,7 +1,8 @@
 """End-to-end: the echo agent is discovered through its real entry point and runs."""
 
 import pytest
-from agents_core import (
+from echo_agent import EchoAgent
+from margin_core import (
     AgentRegistry,
     InputValidationError,
     ProgressEvent,
@@ -10,9 +11,8 @@ from agents_core import (
     list_agents,
     run_agent,
 )
-from agents_core.llm import MockLLM
-from agents_core.reporting import to_json, to_markdown
-from echo_agent import EchoAgent
+from margin_core.llm import MockLLM
+from margin_core.reporting import to_json, to_markdown
 
 
 def test_echo_is_discovered_via_entry_point() -> None:

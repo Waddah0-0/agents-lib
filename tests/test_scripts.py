@@ -22,12 +22,12 @@ ROOT_PYPROJECT = """[project]
 name = "fake-workspace"
 version = "0.0.0"
 
-[tool.agents-lib]
-repository = "https://github.com/owner/agents-lib"
+[tool.margin]
+repository = "https://github.com/owner/margin"
 mirror-owner = "owner"
 
 [tool.uv.sources]
-agents-lib-core = { workspace = true }
+margin-core = { workspace = true }
 
 [tool.mypy]
 mypy_path = [
@@ -74,7 +74,7 @@ def test_scaffolded_agent_passes_the_check(fake_root: Path) -> None:
             del sys.modules[name]
 
     pyproject = (fake_root / "pyproject.toml").read_text(encoding="utf-8")
-    assert "agents-lib-license-checker = { workspace = true }" in pyproject
+    assert "margin-license-checker = { workspace = true }" in pyproject
     assert '"agents/license_checker/src",' in pyproject
     readme = (fake_root / "README.md").read_text(encoding="utf-8")
     assert "| [License Checker](agents/license_checker/README.md) | Checks licences. |" in readme
@@ -126,7 +126,7 @@ def test_check_catches_broken_agents(fake_root: Path) -> None:
     pyproject = agent_dir / "pyproject.toml"
     pyproject.write_text(
         pyproject.read_text(encoding="utf-8").replace('version = "0.1.0"', 'version = "0.2.0"')
-        + "\n[tool.uv.sources]\nagents-lib-core = { workspace = true }\n",
+        + "\n[tool.uv.sources]\nmargin-core = { workspace = true }\n",
         encoding="utf-8",
     )
     problems = "\n".join(_problems(fake_root, agent_dir))
@@ -146,7 +146,7 @@ def test_check_mirror_rules(fake_root: Path) -> None:
         text.replace("# mirror = ", "mirror = ").replace("<owner>", "someone-else"), "utf-8"
     )
     problems = "\n".join(_problems(fake_root, agent_dir))
-    assert "mirror should be 'owner/agents-lib-license-checker'" in problems
+    assert "mirror should be 'owner/margin-license-checker'" in problems
     assert "planned agents are not mirrored" in problems
 
 
@@ -193,7 +193,7 @@ def test_split_contains_only_the_agent_history(mono: Path) -> None:
 def test_push_fast_forwards_and_never_force_pushes(mono: Path, tmp_path: Path) -> None:
     bare = tmp_path / "mirror.git"
     _git(tmp_path, "init", "-q", "--bare", "-b", "main", str(bare))
-    target = mirror_agents.MirrorTarget("demo", "agents/demo", "owner/agents-lib-demo")
+    target = mirror_agents.MirrorTarget("demo", "agents/demo", "owner/margin-demo")
     url = bare.as_uri()
 
     first = mirror_agents.split(mono, "agents/demo", "HEAD~1")
@@ -220,6 +220,6 @@ def test_push_fast_forwards_and_never_force_pushes(mono: Path, tmp_path: Path) -
 def test_only_working_agents_with_a_mirror_key_are_targets() -> None:
     assert mirror_agents.mirror_targets(REAL_ROOT) == [
         mirror_agents.MirrorTarget(
-            "ai-code-detector", "agents/ai_code_detector", "Waddah0-0/agents-lib-ai-code-detector"
+            "ai-code-detector", "agents/ai_code_detector", "Waddah0-0/margin-ai-code-detector"
         )
     ]  # echo is never mirrored

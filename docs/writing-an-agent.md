@@ -7,10 +7,10 @@ and how it is published as its own repository.
 
 An agent is a small package under `agents/` that does one job. Every agent:
 
-- subclasses `BaseAgent` from `agents_core` and implements one async method, `run`;
+- subclasses `BaseAgent` from `margin_core` and implements one async method, `run`;
 - declares typed input and output models (Pydantic);
 - returns an `AgentResult`: a short summary, findings backed by evidence, and its own data;
-- imports only from `agents_core`, never from another agent;
+- imports only from `margin_core`, never from another agent;
 - is a self-contained sub-repo: its folder has everything it needs and refers to nothing
   outside itself, so it can be mirrored to its own GitHub repository.
 
@@ -34,7 +34,7 @@ workspace (root `pyproject.toml` and the agents table in the main README).
 
 ```text
 agents/license_checker/
-├── pyproject.toml        package metadata, entry point, [tool.agents-lib]
+├── pyproject.toml        package metadata, entry point, [tool.margin]
 ├── README.md             required sections (see section 7)
 ├── CHANGELOG.md          one entry per version
 ├── LICENSE               copy of the root licence
@@ -49,13 +49,13 @@ agents/license_checker/
 
 `scripts/check_agents.py` enforces this layout in CI.
 
-### `[tool.agents-lib]`
+### `[tool.margin]`
 
 ```toml
-[tool.agents-lib]
+[tool.margin]
 id = "license-checker"
 stage = "planned"            # planned | experimental | stable
-# mirror = "Waddah0-0/agents-lib-license-checker"
+# mirror = "Waddah0-0/margin-license-checker"
 ```
 
 - `planned`: a scaffold or work in progress. `agent.py` and `models.py` are optional, and
@@ -70,7 +70,7 @@ provides it for every package, and a per-agent copy would break the mirror repos
 
 ```python
 # models.py
-from agents_core import AgentInput
+from margin_core import AgentInput
 from pydantic import BaseModel, Field
 
 
@@ -85,7 +85,7 @@ class LicenseCheckerOutput(BaseModel):
 
 ```python
 # agent.py
-from agents_core import AgentResult, BaseAgent, Evidence, Finding, RunContext
+from margin_core import AgentResult, BaseAgent, Evidence, Finding, RunContext
 
 from license_checker.models import LicenseCheckerInput, LicenseCheckerOutput
 
@@ -97,7 +97,7 @@ class LicenseCheckerAgent(BaseAgent):
     version = "0.1.0"
     InputModel = LicenseCheckerInput
     OutputModel = LicenseCheckerOutput
-    primary_input = "target"  # what `agents run license-checker <value>` fills
+    primary_input = "target"  # what `margin run license-checker <value>` fills
 
     async def run(self, input: LicenseCheckerInput, ctx: RunContext) -> AgentResult:
         async with await ctx.load_workspace(input.target, paths=input.paths) as ws:
@@ -160,7 +160,7 @@ Tests never use the network. Use `MockLLM` for models and build git repositories
 the test when you need history.
 
 ```python
-from agents_core.llm import MockLLM
+from margin_core.llm import MockLLM
 from license_checker import LicenseCheckerAgent
 
 
@@ -210,6 +210,6 @@ uv run pytest
 
 Once the agent does real work, set `stage = "experimental"` and add the `mirror` key. After
 CI passes on `main`, the mirror workflow copies the agent folder, with its own history, to
-`<owner>/agents-lib-<id>`. The mirror is read-only; all changes happen in this repository.
+`<owner>/margin-<id>`. The mirror is read-only; all changes happen in this repository.
 The mirror repository must exist and the `MIRROR_TOKEN` secret must give access to it
 before the first mirror.

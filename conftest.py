@@ -21,4 +21,4 @@ ISOLATED_VARS = (
 def _isolate_environment(monkeypatch: pytest.MonkeyPatch) -> None:
     for name in ISOLATED_VARS:
         monkeypatch.delenv(name, raising=False)
-    monkeypatch.setenv("AGENTS_LIB_ENV_FILE", "")  # never read a developer's .env
+    monkeypatch.setenv("MARGIN_ENV_FILE", "")  # never read a developer's .env

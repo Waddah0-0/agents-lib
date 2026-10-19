@@ -4,8 +4,8 @@ import os
 from pathlib import Path
 
 import pytest
-from agents_core import InvalidTargetError, LimitExceededError
-from agents_core.loaders import LoaderLimits, LocalLoader, load_workspace
+from margin_core import InvalidTargetError, LimitExceededError
+from margin_core.loaders import LoaderLimits, LocalLoader, load_workspace
 
 
 def _write(root: Path, rel: str, content: str | bytes = "x = 1\n") -> None:

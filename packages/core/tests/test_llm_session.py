@@ -5,9 +5,9 @@ from __future__ import annotations
 import asyncio
 
 import pytest
-from agents_core import AgentInput, AgentResult, BaseAgent, RunContext
-from agents_core.errors import BudgetExceededError
-from agents_core.llm import LLMResponse, LLMSession, Message, MockLLM, ModelPricing
+from margin_core import AgentInput, AgentResult, BaseAgent, RunContext
+from margin_core.errors import BudgetExceededError
+from margin_core.llm import LLMResponse, LLMSession, Message, MockLLM, ModelPricing
 from pydantic import BaseModel
 
 PRICEY = ModelPricing(input_per_mtok=1_000_000.0, output_per_mtok=0.0)  # $1 per input token

@@ -7,8 +7,8 @@ from collections.abc import Callable
 from pathlib import Path
 
 import pytest
-from agents_core.loaders import LocalLoader
-from agents_core.loaders.git import read_changed_files_sync
+from margin_core.loaders import LocalLoader
+from margin_core.loaders.git import read_changed_files_sync
 
 GitRunner = Callable[..., str]
 

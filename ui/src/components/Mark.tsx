@@ -1,7 +1,7 @@
 import styles from "./Mark.module.css";
 
 /**
- * The agents-lib mark: a page of notes in an ink tile, one line highlighted. It says what the
+ * The margin mark: a page of notes in an ink tile, one line highlighted. It says what the
  * product does: agents read your code and mark the evidence. Fixed brand colours, so it looks
  * the same in light and dark mode.
  */

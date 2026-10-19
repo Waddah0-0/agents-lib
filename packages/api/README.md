@@ -1,26 +1,26 @@
-# agents-lib-api
+# margin-api
 
-An HTTP server that runs any installed agents-lib agent in the background, so a web UI or
+An HTTP server that runs any installed margin agent in the background, so a web UI or
 any other program can start runs, follow their progress live and fetch their results.
 
 ## Starting it
 
 ```bash
-uv run agents-api            # http://127.0.0.1:8000, interactive docs at /docs
+uv run margin-api            # http://127.0.0.1:8000, interactive docs at /docs
 ```
 
 It listens on `127.0.0.1` only, so nothing on your network can reach it. Settings come from
-environment variables (or `.env`) prefixed with `AGENTS_API_`:
+environment variables (or `.env`) prefixed with `MARGIN_API_`:
 
 | Setting | Default | Meaning |
 |---|---|---|
-| `AGENTS_API_HOST` / `AGENTS_API_PORT` | `127.0.0.1` / `8000` | Where to listen. Change the host only if you mean to expose it. |
-| `AGENTS_API_CORS_ORIGINS` | `["http://localhost:3000", "http://127.0.0.1:3000"]` | Web pages allowed to call it (JSON list). |
-| `AGENTS_API_LLM_CONCURRENCY` | `1` | Runs of agents that use a model, at once (one local GPU). |
-| `AGENTS_API_OTHER_CONCURRENCY` | `4` | Runs of other agents, at once. |
-| `AGENTS_API_RESULT_TTL_S` | `3600` | Seconds a finished run is kept. |
-| `AGENTS_API_MAX_BODY_BYTES` | `1000000` | Largest accepted request body. |
-| `AGENTS_API_CANCEL_GRACE_S` | `30` | Time a cancelled run gets to stop on its own before it is stopped. |
+| `MARGIN_API_HOST` / `MARGIN_API_PORT` | `127.0.0.1` / `8000` | Where to listen. Change the host only if you mean to expose it. |
+| `MARGIN_API_CORS_ORIGINS` | `["http://localhost:3000", "http://127.0.0.1:3000"]` | Web pages allowed to call it (JSON list). |
+| `MARGIN_API_LLM_CONCURRENCY` | `1` | Runs of agents that use a model, at once (one local GPU). |
+| `MARGIN_API_OTHER_CONCURRENCY` | `4` | Runs of other agents, at once. |
+| `MARGIN_API_RESULT_TTL_S` | `3600` | Seconds a finished run is kept. |
+| `MARGIN_API_MAX_BODY_BYTES` | `1000000` | Largest accepted request body. |
+| `MARGIN_API_CANCEL_GRACE_S` | `30` | Time a cancelled run gets to stop on its own before it is stopped. |
 
 Model settings (`DEFAULT_LLM_PROVIDER`, `LOCAL_LLM_BASE_URL`, ...) are the same as for the CLI.
 
@@ -57,7 +57,7 @@ curl -s -X DELETE http://127.0.0.1:8000/runs/342e1c...
 
 - **Asynchronous.** Starting a run returns at once; the work happens in the background.
 - **Queues.** Agents that use a model (such as the AI Code Detector) share one queue, one run
-  at a time by default, because a local model has one GPU. Other agents run up to four at a
+  at a time by default, because a local model has one GPU. Other margin run up to four at a
   time. A queued run reports its position.
 - **Late subscribers miss nothing.** Each run keeps its last 200 events, and the event stream
   starts with that history. Reconnecting with the standard `Last-Event-ID` header resumes

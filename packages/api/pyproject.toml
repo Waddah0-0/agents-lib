@@ -1,11 +1,11 @@
 [project]
-name = "agents-lib-api"
+name = "margin-api"
 version = "0.1.0"
-description = "HTTP API server for agents-lib"
+description = "HTTP API server for margin"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "agents-lib-core",
+    "margin-core",
     "fastapi>=0.111.0",
     "uvicorn>=0.30.0",
     "sse-starlette>=2.1.0",
@@ -14,11 +14,11 @@ dependencies = [
 ]
 
 [project.scripts]
-agents-api = "agents_api.main:run"
+margin-api = "margin_api.main:run"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/agents_api"]
+packages = ["src/margin_api"]

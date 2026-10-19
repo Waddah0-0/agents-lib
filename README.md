@@ -1,9 +1,12 @@
-# agents-lib
+# margin
 
-agents-lib is a collection of small AI agents that all work the same way. Each agent does
+margin is a collection of small AI agents that all work the same way. Each agent does
 one job, such as looking at a codebase and estimating how much of it was written with AI
 tools. Every agent takes typed input, returns the same kind of structured result, and runs
 on shared plumbing for loading code, calling a language model, and writing reports.
+
+The name comes from how the agents answer: never a bare verdict, always the evidence beside
+it, like notes written in the margin of your code.
 
 The idea is that writing the tenth agent should be much cheaper than writing the first.
 The hard, boring parts are solved once in a shared core: cloning repositories safely,
@@ -19,7 +22,7 @@ Most "AI agent" code ends up as a pile of one-off scripts. Each one parses its o
 prints free-form text, and talks to a model in its own slightly different way. That makes
 the scripts hard to reuse, hard to test, and impossible to put behind a single interface.
 
-agents-lib makes three decisions to avoid that:
+margin makes three decisions to avoid that:
 
 1. **One contract for every agent.** An agent is a Python class with an input model, an
    output model, and an async `run` method. Anything that can run one agent can run all of
@@ -105,7 +108,7 @@ Agents run against a model on your own machine unless you say otherwise, so usin
 costs nothing. The default is [Ollama](https://ollama.com) with `qwen3.5:9b`, which runs
 on an 8 GB GPU and was chosen by measurement: it judged code clearly better than
 `qwen2.5:7b`, `qwen2.5-coder:7b` and `gemma4:e4b` in a head-to-head on the same files. It
-is a "thinking" model; agents-lib turns its hidden reasoning off, because otherwise it can
+is a "thinking" model; margin turns its hidden reasoning off, because otherwise it can
 spend its whole answer on reasoning. Any server that speaks the OpenAI chat API works:
 
 | Server | `LOCAL_LLM_BASE_URL` |
@@ -142,7 +145,7 @@ The project is built in phases, each one usable before the next begins.
 | 0 | Repository skeleton, tooling, CI | Done |
 | 1 | Core: contract, models, registry, loaders, LLM clients, reporting | Done |
 | 1.5 | Core fixes (per-run LLM budgets, git history scoped to the target, safer clones) and the agent sub-repo standard | Done |
-| 2 | Command-line tool (`agents list`, `agents info`, `agents run`) | Done |
+| 2 | Command-line tool (`margin list`, `margin info`, `margin run`) | Done |
 | 3 | AI Code Detector with heuristic signals, plus the evaluation harness that measures it | Done |
 | 4 | LLM judge, larger evaluation dataset, fitted scoring | Done |
 | 5 | HTTP API with background runs and live progress | Done |
@@ -156,8 +159,8 @@ You need Python 3.11 or newer, [uv](https://github.com/astral-sh/uv), and git. T
 local model you also need Ollama or another server from the table above.
 
 ```bash
-git clone https://github.com/Waddah0-0/agents-lib.git
-cd agents-lib
+git clone https://github.com/Waddah0-0/margin.git
+cd margin
 uv sync --all-packages
 cp .env.example .env        # optional; the defaults work with a local Ollama
 ollama pull qwen3.5:9b      # only needed for agents that call a model
@@ -166,10 +169,10 @@ ollama pull qwen3.5:9b      # only needed for agents that call a model
 Every installed agent can be run from the `agents` command:
 
 ```bash
-uv run agents list                       # installed agents
-uv run agents info echo                  # what an agent takes as input
-uv run agents run echo hello --set repeat=2
-uv run agents run echo hello --format json --out report.json
+uv run margin list                       # installed agents
+uv run margin info echo                  # what an agent takes as input
+uv run margin run echo hello --set repeat=2
+uv run margin run echo hello --format json --out report.json
 ```
 
 The positional value fills the agent's main input field; `--set field=value` fills any other
@@ -180,7 +183,7 @@ progress and warnings go to stderr, so JSON output can be piped safely. See
 Or over HTTP, for another program:
 
 ```bash
-uv run agents-api            # then open http://127.0.0.1:8000/docs
+uv run margin-api            # then open http://127.0.0.1:8000/docs
 ```
 
 Or in the browser. With the API running, start the web UI (Node 20 or newer):
@@ -197,7 +200,7 @@ The same agents can be used from Python:
 
 ```python
 import asyncio
-from agents_core import run_agent
+from margin_core import run_agent
 
 
 async def main() -> None:
@@ -216,7 +219,7 @@ run `uv run python examples/custom_agent.py`.
 
 An agent is a folder under `agents/` with its own `pyproject.toml`, a class that
 subclasses `BaseAgent`, an entry point that registers it, and tests that use `MockLLM`.
-It may import only from `agents_core`, never from another agent. If a new agent seems to
+It may import only from `margin_core`, never from another agent. If a new agent seems to
 need a change to the core, that change should be general enough to help every agent.
 
 [docs/writing-an-agent.md](docs/writing-an-agent.md) walks through it step by step.

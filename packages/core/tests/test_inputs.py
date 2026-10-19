@@ -3,8 +3,8 @@ from __future__ import annotations
 from typing import ClassVar
 
 import pytest
-from agents_core import AgentInput, AgentResult, BaseAgent, InputValidationError, RunContext
-from agents_core.inputs import bind_input, parse_assignment
+from margin_core import AgentInput, AgentResult, BaseAgent, InputValidationError, RunContext
+from margin_core.inputs import bind_input, parse_assignment
 from pydantic import BaseModel
 
 

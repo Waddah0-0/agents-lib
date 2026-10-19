@@ -7,13 +7,13 @@ from importlib.metadata import EntryPoint
 from pathlib import Path
 
 import pytest
-from agents_core import AgentLoadError, AgentNotFoundError, AgentRegistry, BaseAgent
-from agents_core.registry import ENTRY_POINT_GROUP
+from margin_core import AgentLoadError, AgentNotFoundError, AgentRegistry, BaseAgent
+from margin_core.registry import ENTRY_POINT_GROUP
 
 FAKE_PACKAGE = textwrap.dedent(
     """
     from pydantic import BaseModel
-    from agents_core import AgentInput, BaseAgent
+    from margin_core import AgentInput, BaseAgent
 
     class In(AgentInput):
         x: int = 0

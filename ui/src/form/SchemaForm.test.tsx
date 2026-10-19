@@ -60,7 +60,7 @@ describe("SchemaForm", () => {
     expect(fetchMock).not.toHaveBeenCalled();
 
     await user.type(screen.getAllByRole("textbox")[0] as HTMLElement, "hello");
-    expect(screen.getByText("agents run echo hello")).toBeTruthy(); // the live CLI preview
+    expect(screen.getByText("margin run echo hello")).toBeTruthy(); // the live CLI preview
     await user.click(screen.getByRole("button", { name: "Run" }));
 
     const request = fetchMock.mock.calls[0]?.[0] as Request;

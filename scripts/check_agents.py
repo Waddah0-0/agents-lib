@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent
-ENTRY_POINT_GROUP = "agents_lib.agents"
+ENTRY_POINT_GROUP = "margin.agents"
 STAGES = ("planned", "experimental", "stable")
 README_SECTIONS = (
     "What it does",
@@ -36,7 +36,7 @@ VERSION_RE = re.compile(r'^__version__\s*=\s*"([^"]+)"', re.MULTILINE)
 
 @dataclass(frozen=True)
 class WorkspaceConfig:
-    """Repository-wide settings from the root ``pyproject.toml`` ``[tool.agents-lib]``."""
+    """Repository-wide settings from the root ``pyproject.toml`` ``[tool.margin]``."""
 
     repository: str
     mirror_owner: str
@@ -63,7 +63,7 @@ def read_toml(path: Path) -> dict[str, Any]:
 
 
 def workspace_config(root: Path = ROOT) -> WorkspaceConfig:
-    table = read_toml(root / "pyproject.toml").get("tool", {}).get("agents-lib", {})
+    table = read_toml(root / "pyproject.toml").get("tool", {}).get("margin", {})
     return WorkspaceConfig(
         repository=str(table.get("repository", "")).rstrip("/"),
         mirror_owner=str(table.get("mirror-owner", "")),
@@ -77,7 +77,7 @@ def agent_dirs(root: Path = ROOT) -> list[Path]:
 def load_meta(agent_dir: Path) -> AgentMeta:
     data = read_toml(agent_dir / "pyproject.toml")
     project = data.get("project", {})
-    tool = data.get("tool", {}).get("agents-lib", {})
+    tool = data.get("tool", {}).get("margin", {})
     packages = data.get("tool", {}).get("hatch", {}).get("build", {}).get("targets", {})
     wheel_packages = packages.get("wheel", {}).get("packages", [])
     entry_points = project.get("entry-points", {}).get(ENTRY_POINT_GROUP, {})
@@ -113,7 +113,7 @@ def _readme_problems(readme: Path) -> list[str]:
 
 
 def _class_problems(meta: AgentMeta) -> list[str]:
-    from agents_core import BaseAgent
+    from margin_core import BaseAgent
 
     assert meta.entry_point is not None
     module_name, _, attr = meta.entry_point.partition(":")
@@ -132,7 +132,7 @@ def _class_problems(meta: AgentMeta) -> list[str]:
         return [f"entry point {meta.entry_point!r} is not a BaseAgent subclass"]
     problems = []
     if cls.id != meta.id:
-        problems.append(f"class id {cls.id!r} differs from [tool.agents-lib] id {meta.id!r}")
+        problems.append(f"class id {cls.id!r} differs from [tool.margin] id {meta.id!r}")
     if cls.version != meta.version:
         problems.append(f"class version {cls.version!r} differs from pyproject {meta.version!r}")
     return problems
@@ -148,15 +148,15 @@ def check_agent(agent_dir: Path, root: Path = ROOT, *, import_classes: bool = Tr
 
     # identity
     if not ID_RE.match(meta.id):
-        return [f"[tool.agents-lib] id {meta.id!r} is missing or not kebab-case"]
+        return [f"[tool.margin] id {meta.id!r} is missing or not kebab-case"]
     if agent_dir.name != meta.id.replace("-", "_"):
         problems.append(f"folder should be named {meta.id.replace('-', '_')!r}")
-    if meta.name != f"agents-lib-{meta.id}":
-        problems.append(f"project name should be 'agents-lib-{meta.id}', not {meta.name!r}")
+    if meta.name != f"margin-{meta.id}":
+        problems.append(f"project name should be 'margin-{meta.id}', not {meta.name!r}")
     if meta.stage not in STAGES:
-        problems.append(f"[tool.agents-lib] stage must be one of {', '.join(STAGES)}")
+        problems.append(f"[tool.margin] stage must be one of {', '.join(STAGES)}")
     if meta.mirror is not None:
-        expected = f"{config.mirror_owner}/agents-lib-{meta.id}"
+        expected = f"{config.mirror_owner}/margin-{meta.id}"
         if meta.mirror != expected:
             problems.append(f"mirror should be {expected!r}, not {meta.mirror!r}")
         if meta.stage == "planned":
@@ -171,8 +171,8 @@ def check_agent(agent_dir: Path, root: Path = ROOT, *, import_classes: bool = Tr
         if MD_LINK_OUTSIDE_RE.search(md.read_text(encoding="utf-8")):
             problems.append(f"{md.relative_to(agent_dir).as_posix()} links outside the folder")
     deps = meta.pyproject.get("project", {}).get("dependencies", [])
-    if not any(str(d).split()[0].startswith("agents-lib-core") for d in deps):
-        problems.append("dependencies must include agents-lib-core")
+    if not any(str(d).split()[0].startswith("margin-core") for d in deps):
+        problems.append("dependencies must include margin-core")
 
     # standard files
     problems += _readme_problems(agent_dir / "README.md")
@@ -216,8 +216,8 @@ def check_agent(agent_dir: Path, root: Path = ROOT, *, import_classes: bool = Tr
 
     # workspace wiring
     root_data = read_toml(root / "pyproject.toml")
-    if f"agents-lib-{meta.id}" not in root_data.get("tool", {}).get("uv", {}).get("sources", {}):
-        problems.append(f"root pyproject [tool.uv.sources] lacks agents-lib-{meta.id}")
+    if f"margin-{meta.id}" not in root_data.get("tool", {}).get("uv", {}).get("sources", {}):
+        problems.append(f"root pyproject [tool.uv.sources] lacks margin-{meta.id}")
     if f"{rel}/src" not in root_data.get("tool", {}).get("mypy", {}).get("mypy_path", []):
         problems.append(f"root pyproject [tool.mypy] mypy_path lacks {rel}/src")
     if f"({rel}/README.md)" not in (root / "README.md").read_text(encoding="utf-8"):

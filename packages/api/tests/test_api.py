@@ -10,12 +10,12 @@ from importlib.metadata import EntryPoint
 from typing import Any, ClassVar
 
 import pytest
-from agents_api.app import create_app
-from agents_api.settings import ApiSettings
-from agents_core import AgentInput, AgentRegistry, AgentResult, BaseAgent, RunContext
-from agents_core.registry import ENTRY_POINT_GROUP
 from echo_agent import EchoAgent
 from fastapi.testclient import TestClient
+from margin_api.app import create_app
+from margin_api.settings import ApiSettings
+from margin_core import AgentInput, AgentRegistry, AgentResult, BaseAgent, RunContext
+from margin_core.registry import ENTRY_POINT_GROUP
 from pydantic import BaseModel
 
 

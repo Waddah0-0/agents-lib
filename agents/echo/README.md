@@ -9,7 +9,7 @@ Echoes a message back, optionally repeated, and can also ask the configured mode
 to it. It touches no files and no network unless `use_llm` is on.
 
 Use it to smoke-test the registry, the CLI, the API or the UI, and as a reference when you
-write a new agent (see [writing an agent](https://github.com/Waddah0-0/agents-lib/blob/main/docs/writing-an-agent.md)).
+write a new agent (see [writing an agent](https://github.com/Waddah0-0/margin/blob/main/docs/writing-an-agent.md)).
 
 ## How it works
 
@@ -46,7 +46,7 @@ None worth noting: it does no analysis. With `use_llm` on, it needs a reachable 
 ```python
 import asyncio
 
-from agents_core import run_agent
+from margin_core import run_agent
 
 
 async def main() -> None:
@@ -59,8 +59,8 @@ asyncio.run(main())
 
 ## Development
 
-This agent lives in the [agents-lib](https://github.com/Waddah0-0/agents-lib) monorepo, in
-[`agents/echo`](https://github.com/Waddah0-0/agents-lib/tree/main/agents/echo). It is not mirrored to a separate repository,
+This agent lives in the [margin](https://github.com/Waddah0-0/margin) monorepo, in
+[`agents/echo`](https://github.com/Waddah0-0/margin/tree/main/agents/echo). It is not mirrored to a separate repository,
 because it is a test fixture and template rather than a real agent.
 
 Run its tests with `uv run pytest agents/echo`.

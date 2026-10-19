@@ -1,6 +1,6 @@
-# agents-lib web UI
+# margin web UI
 
-A web page for running agents-lib agents. It talks only to the HTTP API: pick an agent, fill
+A web page for running margin agents. It talks only to the HTTP API: pick an agent, fill
 in a form generated from its input schema, watch the run live, and read the result with all
 its evidence.
 
@@ -12,7 +12,7 @@ It is designed as a lab notebook: warm paper, ink, and a highlighter that marks 
 You need Node 20 or newer, and the API running:
 
 ```bash
-uv run agents-api            # from the repository root: http://127.0.0.1:8000
+uv run margin-api            # from the repository root: http://127.0.0.1:8000
 
 cd ui
 npm install
@@ -20,7 +20,7 @@ npm run dev                  # http://localhost:3000
 ```
 
 The API only accepts browser requests from `localhost:3000` and `127.0.0.1:3000` by default
-(`AGENTS_API_CORS_ORIGINS`). To point the UI at another API address, set `VITE_API_URL`:
+(`MARGIN_API_CORS_ORIGINS`). To point the UI at another API address, set `VITE_API_URL`:
 
 ```bash
 VITE_API_URL=http://127.0.0.1:9000 npm run dev
@@ -34,7 +34,7 @@ VITE_API_URL=http://127.0.0.1:9000 npm run dev
 |---|---|
 | Home | Pick an agent, paste its main input, run. Also shows the installed agents and recent runs. |
 | Agents | Every installed agent, plus any that failed to load and why. |
-| Agent | The input form, generated from the agent's JSON schema: the main input first, other fields under "More options". It also shows the same run as an `agents run` command. |
+| Agent | The input form, generated from the agent's JSON schema: the main input first, other fields under "More options". It also shows the same run as an `margin run` command. |
 | Run | Live progress over server-sent events: stage, percentage, queue position. You can cancel from here. When the run finishes, the result appears below. |
 | Runs | Recent runs. They live in the API's memory for an hour. |
 

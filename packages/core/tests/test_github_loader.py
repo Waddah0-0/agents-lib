@@ -4,9 +4,9 @@ from collections.abc import Callable
 from pathlib import Path
 
 import pytest
-from agents_core import InvalidTargetError, LimitExceededError, LoaderError
-from agents_core.loaders import GitHubLoader, LoaderLimits, parse_github_url
-from agents_core.loaders.git import detect_git, parse_log, read_commits_sync
+from margin_core import InvalidTargetError, LimitExceededError, LoaderError
+from margin_core.loaders import GitHubLoader, LoaderLimits, parse_github_url
+from margin_core.loaders.git import detect_git, parse_log, read_commits_sync
 
 GitRunner = Callable[..., str]
 

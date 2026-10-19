@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from agents_core.config import get_settings
+from margin_core.config import get_settings
 
 
 def test_defaults_without_env_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -17,7 +17,7 @@ def test_defaults_without_env_file(tmp_path: Path, monkeypatch: pytest.MonkeyPat
 def test_env_file_can_be_chosen(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     env = tmp_path / "custom.env"
     env.write_text("DEFAULT_LLM_MODEL=from-file\n", encoding="utf-8")
-    monkeypatch.setenv("AGENTS_LIB_ENV_FILE", str(env))
+    monkeypatch.setenv("MARGIN_ENV_FILE", str(env))
     assert get_settings().default_llm_model == "from-file"
 
 

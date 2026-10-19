@@ -565,8 +565,8 @@
     }
   },
   "info": {
-    "description": "Run any installed agents-lib agent over HTTP. Runs are asynchronous: start one, then poll it or follow its events (server-sent events) until the result arrives.",
-    "title": "agents-lib API",
+    "description": "Run any installed margin agent over HTTP. Runs are asynchronous: start one, then poll it or follow its events (server-sent events) until the result arrives.",
+    "title": "margin API",
     "version": "0.1.0"
   },
   "openapi": "3.1.0",

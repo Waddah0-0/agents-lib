@@ -20,9 +20,9 @@ TARGET = ROOT / "ui" / "openapi.json"
 
 
 def schema_text() -> str:
-    from agents_api.app import create_app
-    from agents_api.settings import ApiSettings
-    from agents_core import AgentRegistry
+    from margin_api.app import create_app
+    from margin_api.settings import ApiSettings
+    from margin_core import AgentRegistry
 
     # The schema does not depend on which agents are installed: inputs are validated
     # against each agent's own schema at run time (GET /agents/{id} returns it).

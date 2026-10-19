@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from agents_core import AgentResult, BaseAgent, Evidence, Finding, RunContext
+from margin_core import AgentResult, BaseAgent, Evidence, Finding, RunContext
 
 from echo_agent.models import EchoInput, EchoOutput
 

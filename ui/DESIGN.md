@@ -4,7 +4,7 @@ How the web UI looks and moves, and why.
 
 ## The idea: a lab notebook
 
-agents-lib's agents show their work: they read code, mark the evidence, and weigh it for and
+margin's agents show their work: they read code, mark the evidence, and weigh it for and
 against. The UI looks like that work: warm paper, ink, and a highlighter that marks what
 matters.
 
