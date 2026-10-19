@@ -55,7 +55,7 @@ inside it can be versioned and published on its own:
 |---|---|
 | `packages/core` | The shared foundation: the agent contract, result models, registry, loaders, LLM clients and reporting. |
 | `packages/cli` | The `agents` command-line tool. |
-| `packages/api` | The FastAPI server for running agents over HTTP (placeholder for now). |
+| `packages/api` | The HTTP server: run agents in the background, follow them live, cancel them ([details](packages/api/README.md)). |
 | `agents/echo` | A minimal reference agent, used for smoke tests and as a template. |
 | `agents/ai_code_detector` | The first real agent (in progress). |
 | `examples/` | Small runnable scripts. |
@@ -142,8 +142,8 @@ The project is built in phases, each one usable before the next begins.
 | 2 | Command-line tool (`agents list`, `agents info`, `agents run`) | Done |
 | 3 | AI Code Detector with heuristic signals, plus the evaluation harness that measures it | Done |
 | 4 | LLM judge, larger evaluation dataset, fitted scoring | Done |
-| 5 | HTTP API with background runs and live progress | Next |
-| 6–7 | Web UI: a generic one for every agent, plus a custom view for the detector | Planned |
+| 5 | HTTP API with background runs and live progress | Done |
+| 6–7 | Web UI: a generic one for every agent, plus a custom view for the detector | Next |
 | 8 | Hardening and the first PyPI release | Planned |
 
 ## Getting started
@@ -172,6 +172,12 @@ The positional value fills the agent's main input field; `--set field=value` fil
 field, and `--input file.json` reads them from a file. Reports go to stdout (or `--out`), and
 progress and warnings go to stderr, so JSON output can be piped safely. See
 [the CLI's README](packages/cli/README.md) for every option and exit code.
+
+Or over HTTP, for a web UI or another program:
+
+```bash
+uv run agents-api            # then open http://127.0.0.1:8000/docs
+```
 
 The same agents can be used from Python:
 

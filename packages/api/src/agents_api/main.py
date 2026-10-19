@@ -1,15 +1,17 @@
-"""FastAPI application entrypoint."""
+"""Entry point: ``agents-api`` starts the server (``AGENTS_API_HOST``/``AGENTS_API_PORT``)."""
 
-from fastapi import FastAPI
+from __future__ import annotations
 
-app = FastAPI(
-    title="agents-lib API",
-    version="0.1.0",
-    description="HTTP API for agents-lib",
-)
+from agents_api.app import create_app
+from agents_api.settings import load_settings
 
 
-@app.get("/health")
-def health() -> dict[str, str]:
-    """Healthcheck endpoint."""
-    return {"status": "ok"}
+def run() -> None:
+    import uvicorn
+
+    settings = load_settings()
+    uvicorn.run(create_app(settings=settings), host=settings.host, port=settings.port)
+
+
+if __name__ == "__main__":
+    run()

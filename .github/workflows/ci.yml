@@ -43,5 +43,8 @@ jobs:
       - name: Check agent folders follow the sub-repo standard
         run: uv run python scripts/check_agents.py
 
+      - name: Check the exported OpenAPI schema is up to date
+        run: uv run python scripts/export_openapi.py --check
+
       - name: Run tests with Pytest
         run: uv run pytest
