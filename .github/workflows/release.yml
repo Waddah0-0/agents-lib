@@ -55,11 +55,19 @@ jobs:
             dist/*.tar.gz
 
   publish:
-    name: Publish
+    # One job per package, each with its own environment (pypi-<package>): PyPI's trusted
+    # publishers are registered per package, and a package's job can only publish that package.
+    # Keep this list in step with the publishable packages (scripts/build_release.py checks it).
+    name: Publish ${{ matrix.package }}
     needs: build
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 1  # margin-core first, so the others' dependency exists
+      matrix:
+        package: [margin-core, margin-cli, margin-api, margin-ai-code-detector]
     environment:
-      name: ${{ (github.event_name == 'push' || inputs.target == 'pypi') && 'pypi' || 'testpypi' }}
+      name: ${{ (github.event_name == 'push' || inputs.target == 'pypi') && 'pypi' || 'testpypi' }}-${{ matrix.package }}
     permissions:
       id-token: write  # trusted publishing
     steps:
@@ -67,6 +75,12 @@ jobs:
         with:
           name: dist
           path: dist
+
+      - name: Keep only ${{ matrix.package }}
+        run: |
+          prefix=$(echo "${{ matrix.package }}" | tr '-' '_')
+          find dist -type f ! -name "${prefix}-[0-9]*" -delete
+          ls dist
 
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:

@@ -109,6 +109,10 @@ def check(members: list[Member]) -> list[str]:
             req = Requirement(str(dep))
             if req.name in versions and versions[req.name] not in req.specifier:
                 problems.append(f"{name}: requires {req}, but {req.name} is {versions[req.name]}")
+    workflow = (ROOT / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
+    for m in members:  # each package needs its own publish job (and PyPI trusted publisher)
+        if str(m["name"]) not in workflow:
+            problems.append(f"{m['name']}: missing from the publish matrix in release.yml")
     packages = sorted([*DIST.glob("*.whl"), *DIST.glob("*.tar.gz")])
     run(["uvx", "twine", "check", "--strict", *map(str, packages)])
     return problems

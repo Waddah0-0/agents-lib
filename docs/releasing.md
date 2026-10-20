@@ -20,9 +20,12 @@ publisher** and add one entry per package:
 | Owner | `Waddah0-0` |
 | Repository name | `margin` |
 | Workflow name | `release.yml` |
-| Environment name | `pypi` (on test.pypi.org: `testpypi`) |
+| Environment name | `pypi-` + the project name, e.g. `pypi-margin-core` (on test.pypi.org: `testpypi-margin-core`) |
 
-The first upload turns each pending publisher into the project's real one.
+Each package has its own environment because PyPI does not accept the same pending publisher
+for several new projects. The first upload turns each pending publisher into the project's
+real one. A new agent needs its own entry, and its own line in the publish matrix of
+`release.yml` (the release check fails until it has one).
 
 ## Each release
 
