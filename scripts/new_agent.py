@@ -45,9 +45,19 @@ version = "0.1.0"
 description = "{description}"
 readme = "README.md"
 requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{{ name = "Waddah Ali" }}]
+# Planned agents are never uploaded; remove this line when the agent is ready to publish.
+classifiers = ["Private :: Do Not Upload"]
 dependencies = [
-    "margin-core",
+    "margin-core>=0.1.0,<0.2",
 ]
+
+[project.urls]
+Homepage = "https://github.com/Waddah0-0/margin"
+Source = "https://github.com/Waddah0-0/margin/tree/main/agents/{package}"
+Issues = "https://github.com/Waddah0-0/margin/issues"
 
 [project.entry-points."margin.agents"]
 {agent_id} = "{package}.agent:{cls}"

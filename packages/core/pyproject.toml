@@ -1,15 +1,35 @@
 [project]
 name = "margin-core"
 version = "0.1.0"
-description = "Shared core foundation for margin"
+description = "The shared core of margin: the agent contract, results with evidence, model clients and code loaders."
 readme = "README.md"
 requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Waddah Ali" }]
+keywords = ["agents", "llm", "evidence", "framework"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Typing :: Typed",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
 dependencies = [
     "pydantic>=2.7.0",
     "pydantic-settings>=2.2.0",
     "httpx>=0.27.0",
     "python-dotenv>=1.0.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/Waddah0-0/margin"
+Source = "https://github.com/Waddah0-0/margin/tree/main/packages/core"
+Issues = "https://github.com/Waddah0-0/margin/issues"
+Changelog = "https://github.com/Waddah0-0/margin/blob/main/packages/core/CHANGELOG.md"
 
 [build-system]
 requires = ["hatchling"]

@@ -22,7 +22,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v3
         with:
-          version: "latest"
+          version: "0.11.21"
           enable-cache: true
 
       - name: Set up Python ${{ matrix.python-version }}
@@ -103,3 +103,32 @@ jobs:
           curl -sf -H 'accept: text/html' http://127.0.0.1:8000/runs/x | grep -q '<title>margin</title>'
           test "$(docker inspect --format '{{.Config.User}}' margin)" = margin
           docker rm -f margin
+
+  packages:
+    name: Packages (build, check, install, run)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.11.21"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Install
+        run: |
+          uv python install 3.12
+          uv sync --all-packages
+          npm ci --prefix ui
+
+      - name: Build, check and smoke-test the packages, as a release would
+        run: uv run python scripts/build_release.py
+

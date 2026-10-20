@@ -386,3 +386,18 @@ def test_ui_dir_without_index_is_refused(tmp_path: Path) -> None:
         create_app(
             registry=_registry(), settings=ApiSettings(ui_dir=str(tmp_path)), llm_factory=no_model
         )
+
+
+def test_live_events_still_stream_when_the_ui_is_served(tmp_path: Path) -> None:
+    # regression: a decorator middleware for UI page loads stalled the event stream
+    (tmp_path / "index.html").write_text("<html>ui</html>", encoding="utf-8")
+    app = create_app(
+        registry=_registry(), settings=ApiSettings(ui_dir=str(tmp_path)), llm_factory=no_model
+    )
+    with TestClient(app, base_url="http://127.0.0.1") as c:
+        run_id = start(c, "echo", {"message": "hi"})
+        with c.stream(
+            "GET", f"/runs/{run_id}/events", headers={"accept": "text/event-stream"}
+        ) as events:
+            body = "".join(events.iter_text())
+        assert "event: result" in body

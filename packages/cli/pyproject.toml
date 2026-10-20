@@ -1,17 +1,37 @@
 [project]
 name = "margin-cli"
 version = "0.1.0"
-description = "CLI tool for running and managing agents in margin"
+description = "The `margin` command: list, inspect and run margin agents from the terminal."
 readme = "README.md"
 requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Waddah Ali" }]
+keywords = ["agents", "llm", "cli"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Typing :: Typed",
+    "Environment :: Console",
+]
 dependencies = [
-    "margin-core",
+    "margin-core>=0.1.0,<0.2",
     "typer>=0.12.0",
     "rich>=13.7.0",
 ]
 
 [project.scripts]
 margin = "margin_cli.main:app"
+
+[project.urls]
+Homepage = "https://github.com/Waddah0-0/margin"
+Source = "https://github.com/Waddah0-0/margin/tree/main/packages/cli"
+Issues = "https://github.com/Waddah0-0/margin/issues"
+Changelog = "https://github.com/Waddah0-0/margin/blob/main/packages/cli/CHANGELOG.md"
 
 [build-system]
 requires = ["hatchling"]

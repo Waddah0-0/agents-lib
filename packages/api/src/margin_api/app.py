@@ -12,7 +12,7 @@ from typing import Any, Literal
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.responses import FileResponse, JSONResponse, Response
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from margin_core import (
     AgentInfo,
@@ -171,6 +171,10 @@ def create_app(
         allow_headers=["Content-Type", "Last-Event-ID"],
     )
     app.add_middleware(_BodyLimit, limit=settings.max_body_bytes)
+    ui_dir = Path(settings.ui_dir) if settings.ui_dir else _bundled_ui()
+    ui_root = _ui_root(ui_dir) if ui_dir is not None else None
+    if ui_root is not None:
+        app.add_middleware(_UIPages, root=ui_root)
     # Only answer requests addressed to this machine by name. Without this, a web page could
     # use DNS rebinding to reach the API through a domain of its own and read local results.
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.allowed_hosts)
@@ -288,31 +292,47 @@ def create_app(
     async def http_error(_: Request, exc: HTTPException) -> JSONResponse:
         return JSONResponse({"detail": exc.detail}, status_code=exc.status_code)
 
-    if settings.ui_dir:
-        _serve_ui(app, Path(settings.ui_dir))
+    if ui_root is not None:  # last, so every API route takes precedence
+        app.mount("/", StaticFiles(directory=ui_root, html=True), name="ui")
     return app
 
 
-def _serve_ui(app: FastAPI, ui_dir: Path) -> None:
-    """Serve the built web UI from ``ui_dir``. The UI's pages share paths with the API
-    (``/agents``, ``/runs/<id>``), so a browser loading a page (it asks for HTML) gets the UI,
-    while the UI's own requests (they ask for JSON or events) reach the API."""
+def _bundled_ui() -> Path | None:
+    """The web UI packed into the wheel at release time (absent in a source checkout)."""
+    bundled = Path(__file__).parent / "ui"
+    return bundled if (bundled / "index.html").is_file() else None
+
+
+class _UIPages:
+    """Send a browser's page loads (GET, asking for HTML) to the UI's index.html.
+
+    The UI's pages share paths with the API (``/agents``, ``/runs/<id>``), so a page load gets
+    the UI while the UI's own requests (JSON, events) reach the API. Plain ASGI on purpose:
+    FastAPI's decorator middleware wraps every response, which stalls the live event stream.
+    """
+
+    API_PAGES = ("/docs", "/redoc", "/openapi.json")
+
+    def __init__(self, app: Any, root: Path) -> None:
+        self.app = app
+        self.root = root
+        self.index = root / "index.html"
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] == "http" and scope.get("method") == "GET":
+            headers = dict(scope.get("headers") or [])
+            accept = headers.get(b"accept", b"").decode("latin-1")
+            path = str(scope.get("path", "/"))
+            if "text/html" in accept and not path.startswith(self.API_PAGES):
+                candidate = (self.root / path.lstrip("/")).resolve()
+                if not (candidate.is_file() and self.root in candidate.parents):
+                    await FileResponse(self.index)(scope, receive, send)
+                    return
+        await self.app(scope, receive, send)
+
+
+def _ui_root(ui_dir: Path) -> Path:
     root = ui_dir.resolve()
-    index = root / "index.html"
-    if not index.is_file():
+    if not (root / "index.html").is_file():
         raise RuntimeError(f"MARGIN_API_UI_DIR has no index.html: {root}")
-    api_pages = ("/docs", "/redoc", "/openapi.json")
-
-    @app.middleware("http")
-    async def ui_pages(
-        request: Request, call_next: Callable[[Request], Awaitable[Response]]
-    ) -> Response:
-        path = request.url.path
-        wants_page = request.method == "GET" and "text/html" in request.headers.get("accept", "")
-        if wants_page and not path.startswith(api_pages):
-            candidate = (root / path.lstrip("/")).resolve()
-            if not (candidate.is_file() and root in candidate.parents):
-                return FileResponse(index)
-        return await call_next(request)
-
-    app.mount("/", StaticFiles(directory=root, html=True), name="ui")
+    return root

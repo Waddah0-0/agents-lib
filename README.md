@@ -67,7 +67,7 @@ inside it can be versioned and published on its own:
 | `examples/` | Small runnable scripts. |
 | `scripts/` | Workspace tools: create an agent, check agent folders, mirror agents, type-check. |
 | `tests/` | Tests for the workspace tools. |
-| `docs/` | Guides: [writing an agent](docs/writing-an-agent.md) and [how the AI Code Detector scores code](docs/methodology.md). |
+| `docs/` | Guides: [writing an agent](docs/writing-an-agent.md) and [how the AI Code Detector scores code](docs/methodology.md), [releasing](docs/releasing.md). |
 
 ### The core, piece by piece
 
@@ -155,7 +155,7 @@ The project is built in phases, each one usable before the next begins.
 | 5 | HTTP API with background runs and live progress | Done |
 | 6 | Web UI for every agent: schema-generated forms, live runs, results with evidence | Done |
 | 7 | A custom result view for the AI Code Detector: evidence side by side, marked code, history | Done |
-| 8 | Hardening and the first PyPI release | Planned |
+| 8 | Hardening and the first PyPI release | In progress |
 
 ## Getting started
 
@@ -199,6 +199,20 @@ cd ui && npm install && npm run dev    # http://localhost:3000
 Pick an agent, give it a folder or a GitHub URL, and watch it work. Every result can be
 exported as JSON or Markdown. [ui/README.md](ui/README.md) has the details, and
 [ui/DESIGN.md](ui/DESIGN.md) explains the design.
+
+### From PyPI
+
+Without cloning anything, with Python 3.11 or newer:
+
+```bash
+pip install margin-cli margin-ai-code-detector    # the command line, and the detector
+margin run ai-code-detector https://github.com/psf/requests
+
+pip install margin-api                            # the web UI and HTTP API
+margin-api                                        # then open http://127.0.0.1:8000
+```
+
+Each agent is its own package; install the ones you want and every margin tool finds them.
 
 ### With Docker
 
