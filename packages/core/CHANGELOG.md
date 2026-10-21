@@ -4,6 +4,17 @@ All notable changes to this package are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.1.1] - 2026-10-21
+
+### Security
+- A repository's own git config could make git run a program while margin read its history,
+  for example through `core.fsmonitor`. Every git command now overrides the repository's
+  config, turns hooks off and skips Git LFS downloads. This mattered most in Docker, where
+  git's own ownership check is turned off for the shared folder.
+- Cancelling a run while a repository was being cloned could leave a half-written clone in
+  the temp folder. git now runs as a child process that is stopped before the folder is
+  deleted.
+
 ## [0.1.0] - 2026-10-21
 
 ### Added

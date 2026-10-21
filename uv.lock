@@ -364,7 +364,7 @@ wheels = [
 
 [[package]]
 name = "margin-ai-code-detector"
-version = "0.2.0"
+version = "0.2.1"
 source = { editable = "agents/ai_code_detector" }
 dependencies = [
     { name = "margin-core" },
@@ -423,7 +423,7 @@ requires-dist = [
 
 [[package]]
 name = "margin-core"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "packages/core" }
 dependencies = [
     { name = "httpx" },
