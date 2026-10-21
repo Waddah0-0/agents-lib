@@ -216,25 +216,20 @@ Each agent is its own package; install the ones you want and every margin tool f
 
 ### With Docker
 
-One container runs everything: the API and the web UI on one address.
-
 ```bash
 docker compose up            # then open http://localhost:8000
 ```
 
-- **The model stays outside the container by default.** Ollama (or LM Studio...) keeps
-  running on your computer with direct access to the GPU, and the container talks to it. Pick
-  another model or a hosted provider on the Settings page.
-- **Agents can read the folder you start it from**, mounted read-only at `/workspace`; point
-  the detector at `/workspace/...`. Set `MARGIN_WORKSPACE` to share another folder. GitHub
-  URLs work without any setup.
-- **Settings, keys and the detector's cache** are kept in a Docker volume, so they survive
-  rebuilds.
-- **It's private by default.** It listens on this computer only, runs as a non-root user, and
-  answers only to `localhost`.
+One container runs the API and the web UI together. The model isn't inside it: by default it
+uses the Ollama already running on your computer, which keeps your GPU and the models you've
+downloaded. You can switch to another server, or to Anthropic or OpenAI, on the Settings page.
 
-`compose.yaml` lists the options, including running Ollama inside Docker on Linux with an
-NVIDIA GPU.
+The folder you start it from is shared with the container, read-only, at `/workspace`, so to
+check a local project you point the detector at `/workspace/...` (set `MARGIN_WORKSPACE` to
+share a different folder). GitHub URLs need nothing extra. Your settings and keys live in a
+Docker volume and survive rebuilds. The container only listens on this computer and doesn't
+run as root. `compose.yaml` has the other options, including running Ollama in Docker on
+Linux with an NVIDIA GPU.
 
 The same agents can be used from Python:
 

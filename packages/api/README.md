@@ -1,16 +1,19 @@
 # margin-api
 
-An HTTP server that runs any installed margin agent in the background, so a web UI or
-any other program can start runs, follow their progress live and fetch their results.
+The web UI and HTTP API for margin. It runs your installed agents in the background, so you
+can start a run, watch its progress live and read the result with all its evidence, in the
+browser or from any program that speaks HTTP.
 
 ## Starting it
 
 ```bash
-uv run margin-api            # http://127.0.0.1:8000, interactive docs at /docs
+pip install margin-api margin-ai-code-detector
+margin-api                   # open http://127.0.0.1:8000 (API docs at /docs)
 ```
 
-It listens on `127.0.0.1` only, so nothing on your network can reach it. Settings come from
-environment variables (or `.env`) prefixed with `MARGIN_API_`:
+The web UI comes inside the package, so that one address is the whole app. The server only
+listens on `127.0.0.1`, which means nothing else on your network can reach it. You can change
+that and a few other things with `MARGIN_API_` environment variables (or a `.env` file):
 
 | Setting | Default | Meaning |
 |---|---|---|
@@ -46,8 +49,8 @@ Model settings (`DEFAULT_LLM_PROVIDER`, `LOCAL_LLM_BASE_URL`, ...) are the same 
 
 ```bash
 # start a run
-curl -s -X POST http://127.0.0.1:8000/agents/echo/runs \
-     -H 'content-type: application/json' -d '{"message": "hello", "repeat": 2}'
+curl -s -X POST http://127.0.0.1:8000/agents/ai-code-detector/runs \
+     -H 'content-type: application/json' -d '{"target": "https://github.com/psf/requests"}'
 # -> {"run_id": "342e1c...", "status": "queued", "queue_position": 1, "links": {...}}
 
 # follow it live (the stream ends with a "result" event)
@@ -60,23 +63,29 @@ curl -s -X DELETE http://127.0.0.1:8000/runs/342e1c...
 
 ## How runs behave
 
-- **Asynchronous.** Starting a run returns at once; the work happens in the background.
-- **Queues.** Runs on a local model share one queue, one run at a time by default, because a
-  local model has one GPU. Runs on a hosted model (Anthropic, OpenAI) do not wait for it. Other margin run up to four at a
-  time. A queued run reports its position.
-- **Late subscribers miss nothing.** Each run keeps its last 200 events, and the event stream
-  starts with that history. Reconnecting with the standard `Last-Event-ID` header resumes
-  after the last event received.
-- **Failures are results.** If an agent fails, the run still ends as `done`, and its result
-  has `status: "error"` with the reason. HTTP errors mean the request itself was wrong:
-  `404` unknown agent or run, `422` input that does not match the agent's schema, `413` body
-  too large, `500` an agent that failed to load.
-- **Cancelling** asks the agent to stop at its next checkpoint (a model call in progress is
-  allowed to finish). An agent that has not stopped after the grace period is stopped.
-- **Memory only.** Runs are kept in memory and forgotten after an hour, or when the server
-  restarts.
+Starting a run returns straight away with a `run_id`; the work happens in the background.
 
-## For UI developers
+Runs that use a local model wait in one queue and go one at a time, since a local model
+usually has a single GPU to work with. Runs on Anthropic or OpenAI skip that queue, and agents
+that use no model run up to four at once. While a run waits, it reports its place in line.
 
-The OpenAPI schema is exported to `ui/openapi.json` by `scripts/export_openapi.py`, and CI
-fails if it falls out of date, so a typed client can be generated from it safely.
+Each run keeps its last 200 events, and the event stream replays them before going live, so
+you can connect late without missing anything. If the connection drops, reconnect with the
+standard `Last-Event-ID` header and the stream picks up where it stopped.
+
+When an agent fails, the run still finishes as `done`; the failure is in its result
+(`status: "error"`, with the reason). HTTP errors are for bad requests: `404` for an unknown
+agent or run, `422` for input that doesn't match the agent's schema, `413` for a body that's
+too large, and `500` for an agent that failed to load.
+
+Cancelling asks the agent to stop at its next checkpoint. A model call already under way is
+allowed to finish, and an agent that still hasn't stopped after the grace period is stopped.
+
+Runs live in memory. They're gone after an hour, or when the server restarts, so export a
+result if you want to keep it.
+
+## Working on the UI
+
+In a source checkout, `scripts/export_openapi.py` writes the OpenAPI schema to
+`ui/openapi.json`, and the UI's typed client is generated from it. CI fails if the file is
+out of date.

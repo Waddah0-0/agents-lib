@@ -1,7 +1,12 @@
 # margin-cli
 
-The `agents` command lists, describes and runs every agent installed with margin.
-Installing an agent package is enough for it to appear here.
+The `margin` command lists, describes and runs the margin agents you have installed. Install
+an agent package and it shows up here, nothing else to configure.
+
+```bash
+pip install margin-cli margin-ai-code-detector
+margin run ai-code-detector https://github.com/psf/requests
+```
 
 ## Commands
 
@@ -16,21 +21,21 @@ margin version
 
 ## Giving an agent its input
 
-- **The positional value** fills the agent's main input field (shown as "positional" by
-  `margin info`). For the detector that is the repository URL or path; for echo, the
-  message.
-- **`--set field=value`** (repeatable, short `-s`) sets any field. Values are read as JSON
-  when they are valid JSON (`3`, `true`, `["a","b"]`), except for text fields, which always
-  take the value as written.
-- **`--input file.json`** (`-i`) reads fields from a JSON object. `--set` overrides it.
+The value after the agent's name fills its main input field, which `margin info` marks as
+"positional". For the detector that's the repository URL or path.
+
+`--set field=value` (or `-s`, as many times as you need) sets any other field. A value that
+parses as JSON is read as JSON (`3`, `true`, `["a","b"]`), except in text fields, which always
+take what you typed. `--input file.json` (`-i`) reads the fields from a JSON file, and `--set`
+wins over it.
 
 ```bash
-margin run echo hello --set repeat=3
-margin run echo --set message=hello --set use_llm=true
-margin run echo -i input.json -s repeat=1
+margin run ai-code-detector ./my-project --set include_tests=true
+margin run ai-code-detector --set target=./my-project --set 'paths=["src"]'
+margin run ai-code-detector -i input.json -s max_files_for_judge=5
 ```
 
-Giving the main field both positionally and with `--set` is an error.
+Giving the main field both ways, positionally and with `--set`, is an error.
 
 ## Options of `margin run`
 
@@ -44,10 +49,10 @@ Giving the main field both positionally and with `--set` is an error.
 | `--quiet`, `-q` | No progress display. |
 | `--strict` | Treat a partial result as a failure (exit code 4). |
 
-The LLM client is set up from your settings (`.env` or environment variables), but nothing
-contacts a model unless the agent actually uses one. So agents that need no model run even
-when no model server is running, and when the default provider cannot be set up at all.
-A provider or model you choose with `--provider` or `--model` is checked straight away.
+The model comes from your settings (environment variables, settings saved in the web UI, or
+`.env`), but nothing talks to a model unless the agent needs one. Agents that don't use a
+model work even with no model server running. If you pass `--provider` or `--model`, that
+choice is checked before the run starts.
 
 ## Output streams
 
