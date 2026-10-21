@@ -14,8 +14,8 @@ it is never given to ``git``.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import re
-import subprocess
 import tempfile
 from collections.abc import Sequence
 from pathlib import Path
@@ -27,7 +27,7 @@ from margin_core.config import get_settings
 from margin_core.errors import InvalidTargetError, LimitExceededError, LoaderError
 from margin_core.loaders.base import Loader, LoaderLimits, Workspace
 from margin_core.loaders.filters import FilterConfig
-from margin_core.loaders.git import GitCommandError, git_available, run_git
+from margin_core.loaders.git import git_available, git_command, safe_git_env
 from margin_core.loaders.local import LocalLoader
 
 GITHUB_URL_RE = re.compile(
@@ -129,7 +129,7 @@ class GitHubLoader(Loader):
             )
         return None
 
-    def _clone(self, url: str, dest: Path, branch: str | None) -> None:
+    def _clone_command(self, url: str, dest: Path, branch: str | None) -> list[str]:
         args = [
             "-c",
             "core.symlinks=false",
@@ -143,15 +143,32 @@ class GitHubLoader(Loader):
         ]
         if branch:
             args += ["--branch", branch]
-        args += ["--", url, str(dest)]
+        return git_command([*args, "--", url, str(dest)])
+
+    async def _clone(self, url: str, dest: Path, branch: str | None) -> None:
+        """Clone as a child process we can kill. If the run is cancelled or the clone times
+        out, git is stopped and waited for before anything is deleted, so a half-written clone
+        never outlives the run."""
+        proc = await asyncio.create_subprocess_exec(
+            *self._clone_command(url, dest, branch),
+            stdin=asyncio.subprocess.DEVNULL,
+            stdout=asyncio.subprocess.DEVNULL,
+            stderr=asyncio.subprocess.PIPE,
+            env=safe_git_env(),
+        )
         try:
-            run_git(args, timeout_s=self.limits.clone_timeout_s)
-        except subprocess.TimeoutExpired as exc:
+            _, stderr = await asyncio.wait_for(proc.communicate(), self.limits.clone_timeout_s)
+        except TimeoutError as exc:
+            await _stop(proc)
             raise LimitExceededError(
                 f"Clone timed out after {self.limits.clone_timeout_s:.0f}s"
             ) from exc
-        except GitCommandError as exc:
-            raise LoaderError(f"Could not clone {url}: {exc}") from exc
+        except BaseException:  # cancelled
+            await _stop(proc)
+            raise
+        if proc.returncode != 0:
+            message = stderr.decode("utf-8", errors="replace").strip()
+            raise LoaderError(f"Could not clone {url}: {message}")
 
     async def load(
         self,
@@ -169,7 +186,7 @@ class GitHubLoader(Loader):
         tmp = Path(tempfile.mkdtemp(prefix="margin-"))
         try:
             dest = tmp / "repo"
-            await asyncio.to_thread(self._clone, url, dest, branch)
+            await self._clone(url, dest, branch)
             size = await asyncio.to_thread(directory_size, dest)
             if size > self.limits.max_repo_size_bytes:
                 raise LimitExceededError(
@@ -184,3 +201,11 @@ class GitHubLoader(Loader):
         if size_warning:
             ws.warnings.append(size_warning)
         return ws
+
+
+async def _stop(proc: asyncio.subprocess.Process) -> None:
+    """Kill a child process and wait until it has really exited."""
+    if proc.returncode is None:
+        with contextlib.suppress(ProcessLookupError):
+            proc.kill()
+        await asyncio.shield(proc.wait())

@@ -1,4 +1,5 @@
-"""Thin wrappers around the ``git`` CLI. Repository code is never executed."""
+"""Thin wrappers around the ``git`` CLI. Repository code is never executed: see
+:data:`SAFE_GIT_CONFIG`."""
 
 from __future__ import annotations
 
@@ -29,8 +30,23 @@ def git_available() -> bool:
     return shutil.which("git") is not None
 
 
+# Passed on every git command line, where they override any config, including a repository's
+# own .git/config. A folder we are pointed at is untrusted: its config could name programs for
+# git to run (core.fsmonitor), hooks could run on checkout, and Git LFS could download files
+# from another server past our size limits.
+SAFE_GIT_CONFIG = (
+    "core.fsmonitor=false",
+    "core.hooksPath=" + os.devnull,
+    "filter.lfs.smudge=",
+    "filter.lfs.process=",
+    "filter.lfs.required=false",
+    "i18n.logOutputEncoding=UTF-8",
+)
+
+
 def safe_git_env() -> dict[str, str]:
-    """Environment that prevents git from ever prompting (terminal, GUI, credential manager)."""
+    """Environment that prevents git from ever prompting (terminal, GUI, credential manager)
+    and from fetching Git LFS content."""
     env = dict(os.environ)
     env.update(
         {
@@ -38,14 +54,23 @@ def safe_git_env() -> dict[str, str]:
             "GIT_ASKPASS": "",
             "SSH_ASKPASS": "",
             "GCM_INTERACTIVE": "never",
+            "GIT_LFS_SKIP_SMUDGE": "1",
         }
     )
     return env
 
 
+def git_command(args: list[str]) -> list[str]:
+    """``git <args>`` with the safety settings in front."""
+    cmd = ["git"]
+    for setting in SAFE_GIT_CONFIG:
+        cmd += ["-c", setting]
+    return cmd + args
+
+
 def run_git(args: list[str], cwd: Path | None = None, timeout_s: float = 60.0) -> str:
     """Run ``git <args>`` and return stdout (UTF-8). Raises :class:`GitCommandError`."""
-    cmd = ["git", "-c", "i18n.logOutputEncoding=UTF-8", *args]
+    cmd = git_command(args)
     proc = subprocess.run(
         cmd,
         cwd=cwd,
